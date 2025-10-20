@@ -1,20 +1,20 @@
 import { useState, useCallback } from "react";
-import { Aptos, AptosConfig } from "@aptos-labs/ts-sdk";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 import debounce from "lodash/debounce";
-import { NETWORK, ROUTER_ADDRESS, DECIMAL_MULTIPLIER } from "@/lib/constants";
+import { getSolanaConnection, SWAP_PROGRAM_ID, DECIMAL_MULTIPLIER, BOSON_MINT } from "@/lib/constants";
 
-const config = new AptosConfig({ network: NETWORK });
-const aptos = new Aptos(config);
+const connection = getSolanaConnection();
 
 export function useSwapQuote(
-  fromTokenType: string,
-  toTokenType: string,
+  fromTokenMint: PublicKey | undefined,
+  toTokenMint: PublicKey | undefined,
   tokenPrices: any
 ) {
   const [receiveAmount, setReceiveAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchQuote = async (inputAmount: string, fromType: string, toType: string) => {
+  const fetchQuote = async (inputAmount: string, fromMint: PublicKey, toMint: PublicKey) => {
     if (!inputAmount || Number(inputAmount) <= 0) {
       setReceiveAmount("");
       return;
@@ -24,24 +24,77 @@ export function useSwapQuote(
 
     try {
       const amountIn = Math.floor(Number(inputAmount) * DECIMAL_MULTIPLIER);
-      const oneTokenOut = DECIMAL_MULTIPLIER;
-      const getAmountInFunction = `${ROUTER_ADDRESS}::router::get_amount_in`;
 
-      const amountInForOneOut = await aptos.view({
-        payload: {
-          function: getAmountInFunction as `${string}::${string}::${string}`,
-          typeArguments: [fromType, toType],
-          functionArguments: [oneTokenOut.toString()],
-        },
+      // Find the pool for this token pair
+      const accounts = await connection.getProgramAccounts(SWAP_PROGRAM_ID, {
+        filters: [
+          {
+            dataSize: 8 + 32 + 32 + 32, // discriminator + amm + mint_a + mint_b
+          },
+        ],
       });
 
-      if (!Array.isArray(amountInForOneOut) || amountInForOneOut.length === 0) {
-        throw new Error("Invalid response from get_amount_in function");
+      let poolPubkey: PublicKey | null = null;
+      let poolData: Buffer | null = null;
+
+      // Find matching pool
+      for (const { pubkey, account } of accounts) {
+        const data = account.data;
+        const poolMintABytes = data.slice(40, 72);
+        const poolMintBBytes = data.slice(72, 104);
+        const poolMintA = new PublicKey(poolMintABytes);
+        const poolMintB = new PublicKey(poolMintBBytes);
+
+        if (
+          (poolMintA.equals(fromMint) && poolMintB.equals(toMint)) ||
+          (poolMintA.equals(toMint) && poolMintB.equals(fromMint))
+        ) {
+          poolPubkey = pubkey;
+          poolData = data;
+          break;
+        }
       }
 
-      const inputNeededForOneOutput = Number(amountInForOneOut[0]);
-      const exchangeRate = DECIMAL_MULTIPLIER / inputNeededForOneOutput;
-      const amountOut = Math.floor(amountIn * exchangeRate);
+      if (!poolPubkey || !poolData) {
+        throw new Error("Pool not found for this token pair");
+      }
+
+      // Extract pool data
+      const ammBytes = poolData.slice(8, 40);
+      const amm = new PublicKey(ammBytes);
+      const poolMintABytes = poolData.slice(40, 72);
+      const poolMintBBytes = poolData.slice(72, 104);
+      const poolMintA = new PublicKey(poolMintABytes);
+      const poolMintB = new PublicKey(poolMintBBytes);
+
+      // Derive pool authority
+      const [poolAuthority] = await PublicKey.findProgramAddress(
+        [amm.toBuffer(), poolMintA.toBuffer(), poolMintB.toBuffer(), Buffer.from("authority")],
+        SWAP_PROGRAM_ID
+      );
+
+      // Get pool token accounts
+      const poolAccountA = await getAssociatedTokenAddress(poolMintA, poolAuthority, true);
+      const poolAccountB = await getAssociatedTokenAddress(poolMintB, poolAuthority, true);
+
+      // Fetch reserves
+      const [accountAInfo, accountBInfo] = await Promise.all([
+        getAccount(connection, poolAccountA),
+        getAccount(connection, poolAccountB),
+      ]);
+
+      const reserveA = Number(accountAInfo.amount);
+      const reserveB = Number(accountBInfo.amount);
+
+      // Determine which reserve corresponds to input and output
+      const swappingAtoB = poolMintA.equals(fromMint);
+      const reserveIn = swappingAtoB ? reserveA : reserveB;
+      const reserveOut = swappingAtoB ? reserveB : reserveA;
+
+      // Calculate output using constant product formula: x * y = k
+      // amountOut = (amountIn * reserveOut) / (reserveIn + amountIn)
+      // This is simplified; actual implementation might have fees
+      const amountOut = Math.floor((amountIn * reserveOut) / (reserveIn + amountIn));
 
       setReceiveAmount((amountOut / DECIMAL_MULTIPLIER).toString());
     } catch (error) {
@@ -51,9 +104,9 @@ export function useSwapQuote(
       if (tokenPrices?.current?.reserves) {
         try {
           let fallbackOutput = 0;
-          const fromName = fromType.split("::").pop();
+          const isFromBoson = fromTokenMint?.equals(BOSON_MINT);
 
-          if (fromName !== "Boson") {
+          if (!isFromBoson) {
             // Converting Player -> BOSON: multiply by BOSON per Player
             fallbackOutput = Number(inputAmount) * tokenPrices.current.reserves.playerPriceInBoson;
           } else {
@@ -76,8 +129,8 @@ export function useSwapQuote(
 
   const debouncedFetchQuote = useCallback(
     debounce(
-      (inputAmount: string, fromType: string, toType: string) =>
-        fetchQuote(inputAmount, fromType, toType),
+      (inputAmount: string, fromMint: PublicKey, toMint: PublicKey) =>
+        fetchQuote(inputAmount, fromMint, toMint),
       500
     ),
     [tokenPrices]
@@ -86,8 +139,11 @@ export function useSwapQuote(
   return {
     receiveAmount,
     loading,
-    fetchQuote: debouncedFetchQuote,
+    fetchQuote: (inputAmount: string) => {
+      if (fromTokenMint && toTokenMint) {
+        debouncedFetchQuote(inputAmount, fromTokenMint, toTokenMint);
+      }
+    },
     setReceiveAmount,
   };
 }
-

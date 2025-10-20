@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useWallet } from "../contexts/WalletContext";
+import { useWallet } from "../hooks/useWallet";
 import LiquidEther from "../components/LiquidEther";
 
 export default function Home() {

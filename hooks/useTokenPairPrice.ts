@@ -1,68 +1,108 @@
 import { useState, useEffect } from "react";
-import { APTOS_FULLNODE_URL, ROUTER_ADDRESS, DECIMAL_MULTIPLIER, BOSON_TOKEN } from "@/lib/constants";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import { getSolanaConnection, SWAP_PROGRAM_ID, DECIMAL_MULTIPLIER, BOSON_MINT } from "@/lib/constants";
 
-export function useTokenPairPrice(token1Type?: string, token2Type?: string) {
+const connection = getSolanaConnection();
+
+export function useTokenPairPrice(token1Mint?: PublicKey, token2Mint?: PublicKey) {
   const [tokenPrices, setTokenPrices] = useState({
     current: null as any,
     lastUpdated: null as Date | null,
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchPrice = async (tokenA: string, tokenB: string) => {
+  const fetchPrice = async (mintA: PublicKey, mintB: PublicKey) => {
     setLoading(true);
 
     try {
-      // Helper to try fetching a resource for a given ordering
-      const tryFetch = async (firstType: string, secondType: string) => {
-        const resourceType = `${ROUTER_ADDRESS}::swap::TokenPairMetadata<${firstType}, ${secondType}>`;
-        const url = `${APTOS_FULLNODE_URL}/accounts/${ROUTER_ADDRESS}/resource/${encodeURIComponent(resourceType)}`;
-        const resp = await fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
-        if (!resp.ok) {
-          return null;
+      // Fetch all pool accounts and find the one matching our token pair
+      const accounts = await connection.getProgramAccounts(SWAP_PROGRAM_ID, {
+        filters: [
+          {
+            dataSize: 8 + 32 + 32 + 32, // discriminator + amm + mint_a + mint_b
+          },
+        ],
+      });
+
+      let poolPubkey: PublicKey | null = null;
+      let poolData: Buffer | null = null;
+
+      // Find the pool that matches our token pair
+      for (const { pubkey, account } of accounts) {
+        const data = account.data;
+        const poolMintABytes = data.slice(40, 72);
+        const poolMintBBytes = data.slice(72, 104);
+        const poolMintA = new PublicKey(poolMintABytes);
+        const poolMintB = new PublicKey(poolMintBBytes);
+
+        // Check if this pool matches our pair (in either order)
+        if (
+          (poolMintA.equals(mintA) && poolMintB.equals(mintB)) ||
+          (poolMintA.equals(mintB) && poolMintB.equals(mintA))
+        ) {
+          poolPubkey = pubkey;
+          poolData = data;
+          break;
         }
-        const json = await resp.json();
-        return { json, usedFirst: firstType, usedSecond: secondType };
-      };
-
-      // Try Player,BOSON order first; if not found, try BOSON,Player
-      let fetched = await tryFetch(tokenA, tokenB);
-      if (!fetched) {
-        fetched = await tryFetch(tokenB, tokenA);
       }
-      if (!fetched) throw new Error("TokenPairMetadata not found in either order");
 
-      const data = fetched.json;
+      if (!poolPubkey || !poolData) {
+        throw new Error("Pool not found for this token pair");
+      }
 
-      // Normalize reserves so that playerReserves always refer to the non-BOSON token
-      const firstIsBoson = fetched.usedFirst === BOSON_TOKEN.type || fetched.usedFirst.endsWith("::Boson::Boson");
-      const rawX = Number(data?.data?.balance_x?.value || 0);
-      const rawY = Number(data?.data?.balance_y?.value || 0);
+      // Extract AMM and mint addresses from pool data
+      const ammBytes = poolData.slice(8, 40);
+      const amm = new PublicKey(ammBytes);
+      const poolMintABytes = poolData.slice(40, 72);
+      const poolMintBBytes = poolData.slice(72, 104);
+      const poolMintA = new PublicKey(poolMintABytes);
+      const poolMintB = new PublicKey(poolMintBBytes);
 
-      const bosonRaw = firstIsBoson ? rawX : rawY;
-      const playerRaw = firstIsBoson ? rawY : rawX;
+      // Derive pool authority
+      const [poolAuthority] = await PublicKey.findProgramAddress(
+        [amm.toBuffer(), poolMintA.toBuffer(), poolMintB.toBuffer(), Buffer.from("authority")],
+        SWAP_PROGRAM_ID
+      );
+
+      // Get the pool's token accounts
+      const poolAccountA = await getAssociatedTokenAddress(poolMintA, poolAuthority, true);
+      const poolAccountB = await getAssociatedTokenAddress(poolMintB, poolAuthority, true);
+
+      // Fetch balances
+      const [accountAInfo, accountBInfo] = await Promise.all([
+        getAccount(connection, poolAccountA),
+        getAccount(connection, poolAccountB),
+      ]);
+
+      const balanceA = Number(accountAInfo.amount);
+      const balanceB = Number(accountBInfo.amount);
+
+      // Determine which is BOSON and which is the player token
+      const firstIsBoson = poolMintA.equals(BOSON_MINT);
+      const bosonRaw = firstIsBoson ? balanceA : balanceB;
+      const playerRaw = firstIsBoson ? balanceB : balanceA;
 
       const boson = bosonRaw / DECIMAL_MULTIPLIER;
       const player = playerRaw / DECIMAL_MULTIPLIER;
 
       const priceInfo = {
-        ...data,
-        token1: fetched.usedFirst.split("::").pop(),
-        token2: fetched.usedSecond.split("::").pop(),
-        reserves: rawX && rawY
-          ? {
-              // Raw and formatted reserves (normalized)
-              bosonRaw,
-              playerRaw,
-              bosonFormatted: boson,
-              playerFormatted: player,
-              // Exchange rates (normalized)
-              playerPriceInBoson: player > 0 ? boson / player : 0, // BOSON per 1 PLAYER
-              bosonPriceInPlayer: boson > 0 ? player / boson : 0, // PLAYER per 1 BOSON
-              // USD pricing assuming BOSON = $1
-              bosonPriceUSD: 1,
-              playerPriceUSD: player > 0 ? boson / player : 0,
-            }
-          : null,
+        token1: firstIsBoson ? "BOSON" : "PLAYER",
+        token2: firstIsBoson ? "PLAYER" : "BOSON",
+        poolAddress: poolPubkey.toBase58(),
+        reserves: {
+          // Raw and formatted reserves (normalized)
+          bosonRaw,
+          playerRaw,
+          bosonFormatted: boson,
+          playerFormatted: player,
+          // Exchange rates (normalized)
+          playerPriceInBoson: player > 0 ? boson / player : 0, // BOSON per 1 PLAYER
+          bosonPriceInPlayer: boson > 0 ? player / boson : 0, // PLAYER per 1 BOSON
+          // USD pricing assuming BOSON = $1
+          bosonPriceUSD: 1,
+          playerPriceUSD: player > 0 ? boson / player : 0,
+        },
       } as any;
 
       setTokenPrices({ current: priceInfo, lastUpdated: new Date() });
@@ -76,20 +116,19 @@ export function useTokenPairPrice(token1Type?: string, token2Type?: string) {
   };
 
   useEffect(() => {
-    if (token1Type && token2Type) {
-      fetchPrice(token1Type, token2Type);
+    if (token1Mint && token2Mint) {
+      fetchPrice(token1Mint, token2Mint);
 
       // Set up periodic price updates every 30 seconds
       const priceInterval = setInterval(() => {
-        fetchPrice(token1Type, token2Type);
+        fetchPrice(token1Mint, token2Mint);
       }, 30000);
 
       return () => clearInterval(priceInterval);
     } else {
       setLoading(false);
     }
-  }, [token1Type, token2Type]);
+  }, [token1Mint?.toBase58(), token2Mint?.toBase58()]);
 
   return { tokenPrices, loading, refetchPrice: fetchPrice };
 }
-

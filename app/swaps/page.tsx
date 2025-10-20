@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useWallet } from "../../contexts/WalletContext";
+import { useWallet } from "@/hooks/useWallet";
 import SwapCard from "@/components/swaps/SwapCard";
 import LivePricesCard from "@/components/swaps/LivePricesCard";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
@@ -67,7 +67,7 @@ function SwapsPageContent() {
 
     const tokenWithDefaults = {
       name: selectedToken.name,
-      type: selectedToken.type,
+      mint: selectedToken.mint,
       displayName: selectedToken.displayName,
       team: selectedToken.team,
       position: selectedToken.position,
@@ -96,13 +96,13 @@ function SwapsPageContent() {
   const selectedToken = availableTokens.find(t => t.name === selectedPlayerToken);
   
   const { tokenPrices, loading: priceLoading, refetchPrice } = useTokenPairPrice(
-    selectedToken?.type,
-    BOSON_TOKEN.type
+    selectedToken?.mint,
+    BOSON_TOKEN.mint
   );
 
   const { receiveAmount, loading: quoteLoading, fetchQuote, setReceiveAmount } = useSwapQuote(
-    tokens?.from.type || "",
-    tokens?.to.type || "",
+    tokens?.from.mint,
+    tokens?.to.mint,
     tokenPrices
   );
 
@@ -115,8 +115,8 @@ function SwapsPageContent() {
       account,
       payAmount,
       receiveAmount,
-      tokens.from.type,
-      tokens.to.type,
+      tokens.from.mint,
+      tokens.to.mint,
       tokens.from.name,
       tokens.fromBalance
     );
@@ -139,7 +139,7 @@ function SwapsPageContent() {
     const currentBalance = tokens.fromBalance;
     const amt = ((currentBalance * pct) / 100).toString();
     setPayAmount(amt);
-    fetchQuote(amt, tokens.from.type, tokens.to.type);
+    fetchQuote(amt);
   };
 
   const handlePayChange = (v: string) => {
@@ -147,7 +147,7 @@ function SwapsPageContent() {
     
     const cleaned = v.replace(/[^0-9.]/g, "");
     setPayAmount(cleaned);
-    fetchQuote(cleaned, tokens.from.type, tokens.to.type);
+    fetchQuote(cleaned);
   };
 
   useEffect(() => {
@@ -312,12 +312,12 @@ function SwapsPageContent() {
               getCurrentTokens={getCurrentTokens}
               onRefresh={() => {
                 if (selectedToken) {
-                  refetchPrice(selectedToken.type, BOSON_TOKEN.type);
+                  refetchPrice(selectedToken.mint, BOSON_TOKEN.mint);
                 }
               }}
               onLoadPrices={() => {
                 if (selectedToken) {
-                  refetchPrice(selectedToken.type, BOSON_TOKEN.type);
+                  refetchPrice(selectedToken.mint, BOSON_TOKEN.mint);
                 }
               }}
             />

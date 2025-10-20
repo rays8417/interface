@@ -11,7 +11,7 @@ import PastTournamentModal from "@/components/tournaments/PastTournamentModal";
 import { useTournaments } from "@/hooks/useTournaments";
 import { useTournamentPlayers } from "@/hooks/useTournamentPlayers";
 import { usePlayerHoldings } from "@/hooks/usePlayerHoldings";
-import { useWallet } from "@/contexts/WalletContext";
+import { useWallet } from "@/hooks/useWallet";
 
 interface PlayerRow {
   id: string;

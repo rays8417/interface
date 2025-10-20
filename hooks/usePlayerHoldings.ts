@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { Aptos, AptosConfig } from "@aptos-labs/ts-sdk";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 import {
-  NETWORK,
-  ROUTER_ADDRESS,
-  APTOS_FULLNODE_URL,
+  getSolanaConnection,
+  SWAP_PROGRAM_ID,
   PLAYER_MAPPING,
+  BOSON_MINT,
   type PlayerPosition,
+  DECIMAL_MULTIPLIER,
 } from "@/lib/constants";
 
-const config = new AptosConfig({ network: NETWORK });
-const aptos = new Aptos(config);
+const connection = getSolanaConnection();
 
 interface Holding {
   id: string;
@@ -22,50 +23,6 @@ interface Holding {
   holdings: number;
   avatar: string;
   imageUrl: string;
-}
-
-interface TokenPairReserve {
-  type: string;
-  data: {
-    block_timestamp_last: string;
-    reserve_x: string;
-    reserve_y: string;
-  };
-}
-
-async function fetchTokenPairReserves(): Promise<TokenPairReserve[]> {
-  try {
-    const response = await fetch(`${APTOS_FULLNODE_URL}/accounts/${ROUTER_ADDRESS}/resources`);
-    const data = await response.json();
-    return data.filter((item: any) => item.type.includes("TokenPairReserve"));
-  } catch (error) {
-    console.error("Error fetching token pair reserves:", error);
-    return [];
-  }
-}
-
-function extractPlayerName(tokenType: string): string | null {
-  const doubleColonMatches = tokenType.match(/::([A-Z][a-z]+[A-Z][a-z]*)::[A-Z][a-z]+[A-Z][a-z]*/g);
-  if (doubleColonMatches) {
-    for (const match of doubleColonMatches) {
-      const parts = match.split("::");
-      if (parts.length >= 3) {
-        const playerName = parts[1];
-        if (playerName !== "Boson" && playerName !== "TokenPairReserve" && playerName !== "swap") {
-          return playerName;
-        }
-      }
-    }
-  }
-  return null;
-}
-
-function calculateBosonValue(reserveX: string, reserveY: string, isBosonFirst: boolean): number {
-  const reserveXNum = parseFloat(reserveX) / Math.pow(10, 8);
-  const reserveYNum = parseFloat(reserveY) / Math.pow(10, 8);
-  const bosonReserve = isBosonFirst ? reserveXNum : reserveYNum;
-  const playerReserve = isBosonFirst ? reserveYNum : reserveXNum;
-  return bosonReserve / playerReserve;
 }
 
 export function usePlayerHoldings(walletAddress?: string) {
@@ -84,46 +41,105 @@ export function usePlayerHoldings(walletAddress?: string) {
         setLoading(true);
         setError(null);
 
-        const tokenReserves = await fetchTokenPairReserves();
+        const walletPubkey = new PublicKey(walletAddress);
 
-        const balances = await Promise.all(
-          Object.values(PLAYER_MAPPING).map(async (playerInfo) => {
-            const playerName = extractPlayerName(playerInfo.tokenType);
-            if (!playerName) return null;
+        // Fetch all pool accounts to get prices
+        const poolAccounts = await connection.getProgramAccounts(SWAP_PROGRAM_ID, {
+          filters: [
+            {
+              dataSize: 8 + 32 + 32 + 32, // discriminator + amm + mint_a + mint_b
+            },
+          ],
+        });
 
-            const balance = await aptos.getAccountCoinAmount({
-              accountAddress: walletAddress,
-              coinType: playerInfo.tokenType as `${string}::${string}::${string}`,
-            });
+        // Build a map of player mint -> pool data for price calculation
+        const poolDataMap = new Map<string, { poolPubkey: PublicKey; data: Buffer }>();
+        
+        for (const { pubkey, account } of poolAccounts) {
+          const data = account.data;
+          const poolMintABytes = data.slice(40, 72);
+          const poolMintBBytes = data.slice(72, 104);
+          const poolMintA = new PublicKey(poolMintABytes);
+          const poolMintB = new PublicKey(poolMintBBytes);
 
-            return { playerName, balance: balance / 100000000 };
-          })
-        );
+          // Check if one is BOSON
+          const isABoson = poolMintA.equals(BOSON_MINT);
+          const isBBoson = poolMintB.equals(BOSON_MINT);
 
-        const processedHoldings: Holding[] = tokenReserves
-          .map((reserve, index) => {
-            const playerName = extractPlayerName(reserve.type);
-            if (!playerName) return null;
+          if (isABoson || isBBoson) {
+            const playerMint = isABoson ? poolMintB : poolMintA;
+            poolDataMap.set(playerMint.toBase58(), { poolPubkey: pubkey, data });
+          }
+        }
 
-            // Only include players that are in the PLAYER_MAPPING (no fallback data)
-            const playerInfo = PLAYER_MAPPING[playerName];
-            if (!playerInfo) return null;
-            
-            const isBosonFirst = reserve.type.includes("Boson::Boson,") &&
-              !reserve.type.includes(`, ${ROUTER_ADDRESS}::Boson::Boson`);
+        // Fetch balances and prices for all players
+        const processedHoldings: Holding[] = [];
 
-            const price = calculateBosonValue(
-              reserve.data.reserve_x,
-              reserve.data.reserve_y,
-              isBosonFirst
+        for (const [playerName, playerInfo] of Object.entries(PLAYER_MAPPING)) {
+          try {
+            // Get player token balance
+            const playerTokenAccount = await getAssociatedTokenAddress(
+              playerInfo.mint,
+              walletPubkey
             );
 
-            const balance = balances.find((b) => b?.playerName === playerName)?.balance as number;
+            let balance = 0;
+            try {
+              const accountInfo = await getAccount(connection, playerTokenAccount);
+              balance = Number(accountInfo.amount) / DECIMAL_MULTIPLIER;
+            } catch {
+              // Account doesn't exist, balance is 0
+              balance = 0;
+            }
 
-            if (!balance) return null;
+            if (balance === 0) continue; // Skip if user has no tokens
 
-            return {
-              id: index.toString(),
+            // Get price from pool
+            let price = 0;
+            const poolInfo = poolDataMap.get(playerInfo.mint.toBase58());
+            
+            if (poolInfo) {
+              try {
+                const { poolPubkey, data } = poolInfo;
+                const ammBytes = data.slice(8, 40);
+                const amm = new PublicKey(ammBytes);
+                const poolMintABytes = data.slice(40, 72);
+                const poolMintBBytes = data.slice(72, 104);
+                const poolMintA = new PublicKey(poolMintABytes);
+                const poolMintB = new PublicKey(poolMintBBytes);
+
+                // Derive pool authority
+                const [poolAuthority] = await PublicKey.findProgramAddress(
+                  [amm.toBuffer(), poolMintA.toBuffer(), poolMintB.toBuffer(), Buffer.from("authority")],
+                  SWAP_PROGRAM_ID
+                );
+
+                // Get pool token accounts
+                const poolAccountA = await getAssociatedTokenAddress(poolMintA, poolAuthority, true);
+                const poolAccountB = await getAssociatedTokenAddress(poolMintB, poolAuthority, true);
+
+                // Fetch balances
+                const [accountAInfo, accountBInfo] = await Promise.all([
+                  getAccount(connection, poolAccountA),
+                  getAccount(connection, poolAccountB),
+                ]);
+
+                const balanceA = Number(accountAInfo.amount) / DECIMAL_MULTIPLIER;
+                const balanceB = Number(accountBInfo.amount) / DECIMAL_MULTIPLIER;
+
+                // Determine which is BOSON
+                const firstIsBoson = poolMintA.equals(BOSON_MINT);
+                const bosonReserve = firstIsBoson ? balanceA : balanceB;
+                const playerReserve = firstIsBoson ? balanceB : balanceA;
+
+                price = playerReserve > 0 ? bosonReserve / playerReserve : 0;
+              } catch (priceError) {
+                console.error(`Failed to fetch price for ${playerName}:`, priceError);
+              }
+            }
+
+            processedHoldings.push({
+              id: playerName,
               playerName: playerInfo.name,
               moduleName: playerName,
               team: playerInfo.team,
@@ -133,9 +149,11 @@ export function usePlayerHoldings(walletAddress?: string) {
               holdings: balance * price,
               avatar: playerInfo.avatar,
               imageUrl: playerInfo.imageUrl || "",
-            };
-          })
-          .filter(Boolean) as Holding[];
+            });
+          } catch (error) {
+            console.error(`Failed to process holdings for ${playerName}:`, error);
+          }
+        }
 
         setHoldings(processedHoldings);
       } catch (err) {
@@ -151,4 +169,3 @@ export function usePlayerHoldings(walletAddress?: string) {
 
   return { holdings, loading, error };
 }
-

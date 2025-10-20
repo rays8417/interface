@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Navbar from "../components/Navbar";
-import { WalletProvider } from "../contexts/WalletContext";
+import PrivyProviderWrapper from "../contexts/PrivyProvider";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -34,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased scrollbar-thin`}
       >
-        <WalletProvider>
+        <PrivyProviderWrapper>
           <Navbar />
           <main className="min-h-[calc(100vh-64px)]">{children}</main>
           <Toaster 
@@ -61,7 +61,7 @@ export default function RootLayout({
               },
             }}
           />
-        </WalletProvider>
+        </PrivyProviderWrapper>
       </body>
     </html>
   );

@@ -3,18 +3,47 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useWallet } from "../contexts/WalletContext";
-import { useState } from "react";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
+import { useState, useEffect } from "react";
 import HowToPlayModal from "./HowToPlayModal";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { account, isConnecting, connectWallet, disconnectWallet } = useWallet();
+  const { authenticated, user, login, logout } = usePrivy();
+  const { ready, wallets } = useSolanaWallets();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const isLanding = pathname === "/";
+
+  useEffect(() => {
+    if (!ready) return;
+    if (wallets.length === 0) {
+      return;
+    }
+    setWalletAddress(wallets[0].address);
+  }, [ready, wallets]);
+
+  const handleConnect = async () => {
+    try {
+      login();
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await logout();
+      setWalletAddress(null);
+    } catch (error) {
+      console.error("Failed to disconnect wallet:", error);
+    }
+  };
 
   // Don't render navbar on landing page
   if (isLanding) {
@@ -78,7 +107,7 @@ export default function Navbar() {
           {/* Right Section */}
           <div className="hidden sm:flex items-center gap-3">
             {isLanding ? (
-              account ? (
+              authenticated && walletAddress ? (
                 <button
                   onClick={() => router.push("/swaps")}
                   className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
@@ -87,22 +116,20 @@ export default function Navbar() {
                 </button>
               ) : (
                 <button
-                  onClick={async () => {
-                    await connectWallet();
-                  }}
-                  disabled={isConnecting}
+                  onClick={handleConnect}
+                  disabled={!ready}
                   className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isConnecting ? "Connecting..." : "Connect Wallet"}
+                  {!ready ? "Loading..." : "Connect Wallet"}
                 </button>
               )
-            ) : account ? (
+            ) : authenticated && walletAddress ? (
               <div className="flex items-center gap-3">
                 <div className="px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border">
-                  {account.address?.slice(0, 6)}...{account.address?.slice(-4)}
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                 </div>
                 <button
-                  onClick={disconnectWallet}
+                  onClick={handleDisconnect}
                   className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated transition-colors"
                 >
                   Disconnect
@@ -110,13 +137,11 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={async () => {
-                  await connectWallet();
-                }}
-                disabled={isConnecting}
+                onClick={handleConnect}
+                disabled={!ready}
                 className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isConnecting ? "Connecting..." : "Connect Wallet"}
+                {!ready ? "Loading..." : "Connect Wallet"}
               </button>
             )}
           </div>
@@ -167,7 +192,7 @@ export default function Navbar() {
           )}
           <div className="mx-auto max-w-7xl px-4 pb-4">
             {isLanding ? (
-              account ? (
+              authenticated && walletAddress ? (
                 <button
                   onClick={() => {
                     setMobileOpen(false);
@@ -179,20 +204,20 @@ export default function Navbar() {
                 </button>
               ) : (
                 <button
-                  onClick={async () => {
-                    await connectWallet();
+                  onClick={() => {
+                    handleConnect();
                     setMobileOpen(false);
                   }}
-                  disabled={isConnecting}
+                  disabled={!ready}
                   className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isConnecting ? "Connecting..." : "Connect Wallet"}
+                  {!ready ? "Loading..." : "Connect Wallet"}
                 </button>
               )
-            ) : account ? (
+            ) : authenticated && walletAddress ? (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <div className="col-span-2 px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border text-center">
-                  {account.address?.slice(0, 10)}...{account.address?.slice(-6)}
+                  {walletAddress.slice(0, 10)}...{walletAddress.slice(-6)}
                 </div>
                 <button
                   onClick={() => setMobileOpen(false)}
@@ -201,8 +226,8 @@ export default function Navbar() {
                   Close
                 </button>
                 <button
-                  onClick={async () => {
-                    await disconnectWallet();
+                  onClick={() => {
+                    handleDisconnect();
                     setMobileOpen(false);
                   }}
                   className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
@@ -212,14 +237,14 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                onClick={async () => {
-                  await connectWallet();
+                onClick={() => {
+                  handleConnect();
                   setMobileOpen(false);
                 }}
-                disabled={isConnecting}
+                disabled={!ready}
                 className="mt-2 w-full inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isConnecting ? "Connecting..." : "Connect Wallet"}
+                {!ready ? "Loading..." : "Connect Wallet"}
               </button>
             )}
           </div>

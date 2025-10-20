@@ -1,6 +1,6 @@
 "use client";
 
-import { useWallet } from "@/contexts/WalletContext";
+import { useWallet } from "@/hooks/useWallet";
 import { useState } from "react";
 import SearchBar from "@/components/ui/SearchBar";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";

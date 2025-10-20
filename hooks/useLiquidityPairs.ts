@@ -1,31 +1,34 @@
 import { useState, useEffect } from "react";
-import { APTOS_FULLNODE_URL, ROUTER_ADDRESS, PLAYER_MAPPING } from "@/lib/constants";
+import { PublicKey } from "@solana/web3.js";
+import { getSolanaConnection, SWAP_PROGRAM_ID, PLAYER_MAPPING, BOSON_MINT } from "@/lib/constants";
 
 interface TokenPair {
   token1: {
     name: string;
-    type: string;
+    mint: PublicKey;
     displayName: string;
     team?: string;
     position?: string;
   };
   token2: {
     name: string;
-    type: string;
+    mint: PublicKey;
     displayName: string;
   };
   reserves: {
     reserve_x: string;
     reserve_y: string;
-    block_timestamp_last: string;
+    poolAddress: string;
   };
 }
+
+const connection = getSolanaConnection();
 
 export function useLiquidityPairs() {
   const [availableTokenPairs, setAvailableTokenPairs] = useState<TokenPair[]>([]);
   const [availableTokens, setAvailableTokens] = useState<Array<{
     name: string;
-    type: string;
+    mint: PublicKey;
     displayName: string;
     team?: string;
     position?: string;
@@ -38,68 +41,79 @@ export function useLiquidityPairs() {
     const fetchPairs = async () => {
       setLoading(true);
       try {
-        const url = `${APTOS_FULLNODE_URL}/accounts/${ROUTER_ADDRESS}/resources`;
-        
-        const response = await fetch(url, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+        // Fetch all pool accounts from the swap program
+        // Pool account structure: discriminator (8 bytes) + amm (32) + mint_a (32) + mint_b (32) + ...
+        const accounts = await connection.getProgramAccounts(SWAP_PROGRAM_ID, {
+          filters: [
+            {
+              // Filter for pool accounts (they have a specific size)
+              dataSize: 8 + 32 + 32 + 32, // Minimum size: discriminator + amm + mint_a + mint_b
+            },
+          ],
         });
-
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const tokenPairReserves = data.filter((resource: any) => 
-          resource.type.includes("TokenPairReserve")
-        );
 
         const parsedPairs: TokenPair[] = [];
         const tokenSet = new Set<string>();
 
-        for (const resource of tokenPairReserves) {
+        for (const { pubkey, account } of accounts) {
           try {
-            const typeMatch = resource.type.match(/TokenPairReserve<([^,]+),\s*([^>]+)>/);
-            if (!typeMatch) continue;
+            const data = account.data;
+            
+            // Skip discriminator (first 8 bytes)
+            // Parse: amm (32 bytes), mint_a (32 bytes), mint_b (32 bytes)
+            const ammBytes = data.slice(8, 40);
+            const mintABytes = data.slice(40, 72);
+            const mintBBytes = data.slice(72, 104);
 
-            const token1Type = typeMatch[1];
-            const token2Type = typeMatch[2];
-            const token1Name = token1Type.split("::").pop();
-            const token2Name = token2Type.split("::").pop();
+            const mintA = new PublicKey(mintABytes);
+            const mintB = new PublicKey(mintBBytes);
 
-            // Skip if we couldn't parse token names or if neither is Boson
-            if (!token1Name || !token2Name) continue;
-            if (token1Name !== "Boson" && token2Name !== "Boson") continue;
+            // Check if one of the mints is BOSON
+            const isABoson = mintA.equals(BOSON_MINT);
+            const isBBoson = mintB.equals(BOSON_MINT);
 
-            const isPlayerTokenFirst = token1Name !== "Boson";
-            const playerTokenName = isPlayerTokenFirst ? token1Name : token2Name;
-            const playerTokenType = isPlayerTokenFirst ? token1Type : token2Type;
-            const bosonTokenType = isPlayerTokenFirst ? token2Type : token1Type;
+            if (!isABoson && !isBBoson) continue; // Skip pairs that don't involve BOSON
 
-            const playerInfo = PLAYER_MAPPING[playerTokenName];
-            if (!playerInfo) continue;
+            const playerMint = isABoson ? mintB : mintA;
+            const bosonMint = isABoson ? mintA : mintB;
 
-            tokenSet.add(playerTokenName);
+            // Find player info by matching mint address
+            const playerEntry = Object.entries(PLAYER_MAPPING).find(
+              ([_, info]) => info.mint.equals(playerMint)
+            );
+
+            if (!playerEntry) continue; // Skip if player not in mapping
+
+            const [playerName, playerInfo] = playerEntry;
+            tokenSet.add(playerName);
+
+            // Note: We can't easily get reserve balances without fetching the pool's token accounts
+            // This would require additional calls. For now, we'll set placeholder values
+            // In a full implementation, you'd fetch the pool's associated token accounts here
 
             const pair: TokenPair = {
               token1: {
-                name: playerTokenName,
-                type: playerTokenType,
+                name: playerName,
+                mint: playerMint,
                 displayName: playerInfo.displayName,
                 team: playerInfo.team,
                 position: playerInfo.position,
               },
               token2: {
                 name: "BOSON",
-                type: bosonTokenType,
+                mint: bosonMint,
                 displayName: "BOSON",
               },
-              reserves: resource.data,
+              reserves: {
+                reserve_x: "0", // Placeholder - would need to fetch pool token accounts
+                reserve_y: "0", // Placeholder - would need to fetch pool token accounts
+                poolAddress: pubkey.toBase58(),
+              },
             };
 
             parsedPairs.push(pair);
           } catch (error) {
-            console.error(`Failed to parse resource:`, error);
+            console.error(`Failed to parse pool account ${pubkey.toBase58()}:`, error);
           }
         }
 
@@ -107,7 +121,7 @@ export function useLiquidityPairs() {
           const playerInfo = PLAYER_MAPPING[tokenName];
           return {
             name: tokenName,
-            type: `${ROUTER_ADDRESS}::${tokenName}::${tokenName}`,
+            mint: playerInfo.mint,
             displayName: playerInfo.displayName,
             team: playerInfo.team,
             position: playerInfo.position,
@@ -132,4 +146,3 @@ export function useLiquidityPairs() {
 
   return { availableTokenPairs, availableTokens, loading };
 }
-

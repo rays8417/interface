@@ -1,5 +1,5 @@
 {
-  "name": "higgsfield-interface",
+  "name": "tenjaku-interface",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@aptos-labs/ts-sdk": "^5.1.0",
+    "@coral-xyz/anchor": "^0.30.1",
+    "@privy-io/react-auth": "^3.3.0",
+    "@solana-program/memo": "^0.9.0",
+    "@solana-program/system": "^0.9.0",
+    "@solana-program/token": "^0.7.0",
+    "@solana/kit": "^4.0.0",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/web3.js": "^1.98.4",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

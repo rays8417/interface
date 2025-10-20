@@ -3,7 +3,7 @@ import SwapButton from "./SwapButton";
 
 interface Token {
   name: string;
-  type: string;
+  mint: any; // PublicKey from @solana/web3.js
   displayName: string;
   team?: string;
   position?: string;

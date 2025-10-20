@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Aptos, AptosConfig } from "@aptos-labs/ts-sdk";
-import { NETWORK, BOSON_TOKEN, DECIMAL_MULTIPLIER, PLAYER_MAPPING } from "@/lib/constants";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import { getSolanaConnection, BOSON_TOKEN, DECIMAL_MULTIPLIER, PLAYER_MAPPING } from "@/lib/constants";
 
-const config = new AptosConfig({ network: NETWORK });
-const aptos = new Aptos(config);
+const connection = getSolanaConnection();
 
 export function useTokenBalances(walletAddress?: string, availableTokens: any[] = []) {
   const [balances, setBalances] = useState<Record<string, number>>({});
@@ -19,27 +19,34 @@ export function useTokenBalances(walletAddress?: string, availableTokens: any[] 
       setLoading(true);
       try {
         const newBalances: Record<string, number> = {};
+        const walletPubkey = new PublicKey(walletAddress);
 
         // Fetch BOSON balance
         try {
-          const bosonBalance = await aptos.getAccountCoinAmount({
-            accountAddress: walletAddress,
-            coinType: BOSON_TOKEN.type as `${string}::${string}::${string}`,
-          });
-          newBalances.boson = bosonBalance / DECIMAL_MULTIPLIER;
+          const bosonTokenAccount = await getAssociatedTokenAddress(
+            BOSON_TOKEN.mint,
+            walletPubkey
+          );
+          
+          const accountInfo = await getAccount(connection, bosonTokenAccount);
+          newBalances.boson = Number(accountInfo.amount) / DECIMAL_MULTIPLIER;
         } catch (error) {
+          // Account doesn't exist or other error
           newBalances.boson = 0;
         }
 
         // Fetch balances for all available player tokens
         for (const token of availableTokens) {
           try {
-            const balance = await aptos.getAccountCoinAmount({
-              accountAddress: walletAddress,
-              coinType: token.type as `${string}::${string}::${string}`,
-            });
-            newBalances[token.name.toLowerCase()] = balance / DECIMAL_MULTIPLIER;
+            const tokenAccount = await getAssociatedTokenAddress(
+              token.mint,
+              walletPubkey
+            );
+            
+            const accountInfo = await getAccount(connection, tokenAccount);
+            newBalances[token.name.toLowerCase()] = Number(accountInfo.amount) / DECIMAL_MULTIPLIER;
           } catch (error) {
+            // Account doesn't exist or other error
             newBalances[token.name.toLowerCase()] = 0;
           }
         }
@@ -57,4 +64,3 @@ export function useTokenBalances(walletAddress?: string, availableTokens: any[] 
 
   return { balances, loading, refetch: () => {} };
 }
-
