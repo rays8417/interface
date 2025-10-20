@@ -20,6 +20,7 @@ export default function Navbar() {
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
   const { availableTokens } = useLiquidityPairs();
   const { balances } = useTokenBalances(walletAddress || undefined, availableTokens);
@@ -32,6 +33,37 @@ export default function Navbar() {
     }
     setWalletAddress(wallets[0].address);
   }, [ready, wallets]);
+
+  // Close dropdown on Escape key or click outside
+  useEffect(() => {
+    if (!showLogout) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowLogout(false);
+      }
+    };
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if click is outside the dropdown
+      if (!target.closest('[data-dropdown-container]')) {
+        setShowLogout(false);
+      }
+    };
+    
+    // Add small delay to prevent immediate closing
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('click', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showLogout]);
 
   const handleConnect = async () => {
     try {
@@ -60,6 +92,19 @@ export default function Navbar() {
     } catch (error) {
       console.error("Failed to copy address:", error);
     }
+  };
+
+  // Get user's email and trim it
+  const getUserEmail = () => {
+    if (!user?.email?.address) return null;
+    const email = user.email.address;
+    if (email.length > 20) {
+      const [localPart, domain] = email.split('@');
+      if (localPart.length > 10) {
+        return `${localPart.slice(0, 8)}...@${domain}`;
+      }
+    }
+    return email;
   };
 
   // Don't render navbar on landing page
@@ -162,12 +207,40 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={handleDisconnect}
-                  className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated transition-colors"
-                >
-                  Disconnect
-                </button>
+                <div className="relative" data-dropdown-container>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowLogout(!showLogout);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm rounded-md border border-border text-foreground bg-muted hover:bg-surface-elevated transition-colors"
+                  >
+                    <span>{getUserEmail() || walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4)}</span>
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${showLogout ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showLogout && (
+                    <div 
+                      className="absolute top-full mt-2 right-0 z-[101] min-w-full bg-surface-elevated border border-border rounded-lg shadow-xl overflow-hidden"
+                    >
+                      <button
+                        onClick={() => {
+                          handleDisconnect();
+                          setShowLogout(false);
+                        }}
+                        className="w-full px-4 py-3 text-sm text-left text-error hover:bg-surface transition-colors font-medium"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <button
@@ -270,21 +343,41 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2" data-dropdown-container>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowLogout(!showLogout);
+                    }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-md border border-border text-foreground bg-muted hover:bg-surface-elevated transition-colors"
+                  >
+                    <span>{getUserEmail() || walletAddress.slice(0, 10) + '...' + walletAddress.slice(-6)}</span>
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${showLogout ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showLogout && (
+                    <button
+                      onClick={() => {
+                        handleDisconnect();
+                        setMobileOpen(false);
+                        setShowLogout(false);
+                      }}
+                      className="w-full px-4 py-3 text-sm rounded-lg bg-surface-elevated border border-border text-error hover:bg-surface transition-colors font-medium"
+                    >
+                      Logout
+                    </button>
+                  )}
                   <button
                     onClick={() => setMobileOpen(false)}
-                    className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
+                    className="w-full px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
                   >
                     Close
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleDisconnect();
-                      setMobileOpen(false);
-                    }}
-                    className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
-                  >
-                    Disconnect
                   </button>
                 </div>
               </div>
