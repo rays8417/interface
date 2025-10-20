@@ -39,24 +39,57 @@ export default function RootLayout({
           <main className="min-h-[calc(100vh-64px)]">{children}</main>
           <Toaster 
             position="bottom-right"
+            containerStyle={{
+              bottom: 20,
+              right: 20,
+            }}
             toastOptions={{
               duration: 4000,
               style: {
-                background: 'var(--card)',
-                color: 'var(--foreground)',
+                background: 'rgba(24, 24, 32, 0.95)',
+                color: 'rgb(250, 250, 250)',
+                border: '1px solid rgba(38, 38, 38, 0.8)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
+                fontSize: '14px',
+                fontWeight: '500',
+                maxWidth: '420px',
               },
               success: {
                 duration: 4000,
+                style: {
+                  background: 'rgba(20, 83, 45, 0.95)',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  color: 'rgb(250, 250, 250)',
+                },
                 iconTheme: {
-                  primary: '#3b82f6',
-                  secondary: '#0b0b0b',
+                  primary: 'rgb(34, 197, 94)',
+                  secondary: 'rgb(20, 83, 45)',
                 },
               },
               error: {
                 duration: 5000,
+                style: {
+                  background: 'rgba(127, 29, 29, 0.95)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: 'rgb(250, 250, 250)',
+                },
                 iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#0b0b0b',
+                  primary: 'rgb(239, 68, 68)',
+                  secondary: 'rgb(127, 29, 29)',
+                },
+              },
+              loading: {
+                style: {
+                  background: 'rgba(30, 58, 138, 0.95)',
+                  border: '1px solid rgba(96, 165, 250, 0.3)',
+                  color: 'rgb(250, 250, 250)',
+                },
+                iconTheme: {
+                  primary: 'rgb(96, 165, 250)',
+                  secondary: 'rgb(30, 58, 138)',
                 },
               },
             }}

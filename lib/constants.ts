@@ -16,12 +16,12 @@ export const SWAP_PROGRAM_ID = new PublicKey("7VFS76Bvrfj35GDho97B8HxgToW9Rpk6zL
 export const AMM_PDA = new PublicKey("4ZnuhoWp9csaEm8LZeeNgbgXQ6tHoz4yTw3feA6DiH1e");
 
 // ===== TOKEN CONFIGURATION =====
-export const TOKEN_DECIMALS = 8;
+export const TOKEN_DECIMALS = 3;
 export const DECIMAL_MULTIPLIER = Math.pow(10, TOKEN_DECIMALS);
 
 // ===== BASE TOKEN (BOSON) =====
 // Deployed BOSON mint address - update if you have a different base token
-export const BOSON_MINT = new PublicKey(process.env.NEXT_PUBLIC_BOSON_MINT || "11111111111111111111111111111111");
+export const BOSON_MINT = new PublicKey("HtnUp4FXaKC7MvpWP2N8W25rea75XspMiiw3XEixE8Jd");
 
 export const BOSON_TOKEN = {
   name: "BOSON",

@@ -177,6 +177,29 @@ body {
   .bg-gradient-radial {
     background-image: radial-gradient(circle, var(--tw-gradient-stops));
   }
+
+  /* Toast animation improvements */
+  @keyframes toast-slide-in {
+    from {
+      transform: translateX(calc(100% + 20px));
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes toast-slide-out {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(calc(100% + 20px));
+      opacity: 0;
+    }
+  }
 }
 
 /* Selection */

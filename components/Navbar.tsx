@@ -7,6 +7,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useState, useEffect } from "react";
 import HowToPlayModal from "./HowToPlayModal";
+import { useTokenBalances } from "@/hooks/useTokenBalances";
+import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -17,7 +19,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
+  const { availableTokens } = useLiquidityPairs();
+  const { balances } = useTokenBalances(walletAddress || undefined, availableTokens);
   const isLanding = pathname === "/";
 
   useEffect(() => {
@@ -42,6 +47,18 @@ export default function Navbar() {
       setWalletAddress(null);
     } catch (error) {
       console.error("Failed to disconnect wallet:", error);
+    }
+  };
+
+  const handleCopyAddress = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      await navigator.clipboard.writeText(walletAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy address:", error);
     }
   };
 
@@ -125,8 +142,25 @@ export default function Navbar() {
               )
             ) : authenticated && walletAddress ? (
               <div className="flex items-center gap-3">
-                <div className="px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border">
-                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    B
+                  </div>
+                  <span className="font-medium">{balances.boson?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={handleCopyAddress}
+                    className="px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border hover:bg-surface-elevated transition-colors cursor-pointer"
+                    title="Click to copy address"
+                  >
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  </button>
+                  {copied && (
+                    <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-green-600 text-white text-xs rounded whitespace-nowrap z-50">
+                      Address copied!
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={handleDisconnect}
@@ -215,25 +249,44 @@ export default function Navbar() {
                 </button>
               )
             ) : authenticated && walletAddress ? (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="col-span-2 px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border text-center">
-                  {walletAddress.slice(0, 10)}...{walletAddress.slice(-6)}
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center justify-center gap-2 px-2.5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    B
+                  </div>
+                  <span className="font-medium">{balances.boson?.toFixed(2) || '0.00'}</span>
                 </div>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    handleDisconnect();
-                    setMobileOpen(false);
-                  }}
-                  className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
-                >
-                  Disconnect
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={handleCopyAddress}
+                    className="w-full px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border text-center hover:bg-surface-elevated transition-colors cursor-pointer"
+                    title="Click to copy address"
+                  >
+                    {walletAddress.slice(0, 10)}...{walletAddress.slice(-6)}
+                  </button>
+                  {copied && (
+                    <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-green-600 text-white text-xs rounded whitespace-nowrap z-50">
+                      Address copied!
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setMobileOpen(false)}
+                    className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleDisconnect();
+                      setMobileOpen(false);
+                    }}
+                    className="px-3 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-elevated"
+                  >
+                    Disconnect
+                  </button>
+                </div>
               </div>
             ) : (
               <button

@@ -190,23 +190,25 @@ export function useSwapTransaction() {
       // Send transaction using Privy wallet
       let signature: string;
       try {
-        // Serialize the transaction for signing (partial signature)
-        const message = transaction.serializeMessage();
+        // Serialize the full unsigned transaction for Privy
+        const serializedTx = transaction.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        });
 
         // Sign using Privy's wallet
         const { signedTransaction } = await wallet.signTransaction({
-          transaction: Buffer.from(message),
+          transaction: serializedTx,
           chain: "solana:devnet",
         });
 
         // The signedTransaction from Privy is the full signed transaction
-        // Convert it back to Buffer and send
         const signedTxBytes = typeof signedTransaction === 'string' 
           ? Buffer.from(signedTransaction, "base64")
           : Buffer.from(signedTransaction);
 
         signature = await connection.sendRawTransaction(signedTxBytes, {
-          skipPreflight: true,
+          skipPreflight: false,
           maxRetries: 3,
         });
       } catch (sendError: any) {
