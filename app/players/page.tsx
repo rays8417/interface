@@ -128,7 +128,7 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("base", 20)}
-                disabled={loadingPacks.base || balancesLoading || !account}
+                disabled={loadingPacks.base || !account}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingPacks.base ? "Opening..." : "Open Pack"}
@@ -166,7 +166,7 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("prime", 50)}
-                disabled={loadingPacks.prime || balancesLoading || !account}
+                disabled={loadingPacks.prime || !account}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingPacks.prime ? "Opening..." : "Open Pack"}
@@ -204,7 +204,7 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("ultra", 100)}
-                disabled={loadingPacks.ultra || balancesLoading || !account}
+                disabled={loadingPacks.ultra || !account}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingPacks.ultra ? "Opening..." : "Open Pack"}
