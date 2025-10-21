@@ -192,7 +192,7 @@ function SwapsPageContent() {
                 </div>
               </div>
             ) : (
-              <div className="bg-warning-bg border border-warning rounded-xl px-4 py-3">
+              <div className="border-2 border-warning rounded-xl px-4 py-3 bg-surface/30">
                 <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
                 <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
               </div>
@@ -270,7 +270,7 @@ function SwapsPageContent() {
               </div>
             </div>
           ) : (
-            <div className="bg-warning-bg border border-warning rounded-xl px-4 py-3">
+            <div className="border-2 border-warning rounded-xl px-4 py-3 bg-surface/30">
               <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
               <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
             </div>

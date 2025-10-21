@@ -60,36 +60,36 @@ export default function RootLayout({
               success: {
                 duration: 4000,
                 style: {
-                  background: 'rgba(20, 83, 45, 0.95)',
-                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  background: 'rgba(24, 24, 32, 0.8)',
+                  border: '2px solid rgba(34, 197, 94, 1)',
                   color: 'rgb(250, 250, 250)',
                 },
                 iconTheme: {
                   primary: 'rgb(34, 197, 94)',
-                  secondary: 'rgb(20, 83, 45)',
+                  secondary: 'rgba(24, 24, 32, 0.8)',
                 },
               },
               error: {
                 duration: 5000,
                 style: {
-                  background: 'rgba(127, 29, 29, 0.95)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  background: 'rgba(24, 24, 32, 0.8)',
+                  border: '2px solid rgba(239, 68, 68, 1)',
                   color: 'rgb(250, 250, 250)',
                 },
                 iconTheme: {
                   primary: 'rgb(239, 68, 68)',
-                  secondary: 'rgb(127, 29, 29)',
+                  secondary: 'rgba(24, 24, 32, 0.8)',
                 },
               },
               loading: {
                 style: {
-                  background: 'rgba(30, 58, 138, 0.95)',
-                  border: '1px solid rgba(96, 165, 250, 0.3)',
+                  background: 'rgba(24, 24, 32, 0.8)',
+                  border: '2px solid rgba(96, 165, 250, 1)',
                   color: 'rgb(250, 250, 250)',
                 },
                 iconTheme: {
                   primary: 'rgb(96, 165, 250)',
-                  secondary: 'rgb(30, 58, 138)',
+                  secondary: 'rgba(24, 24, 32, 0.8)',
                 },
               },
             }}

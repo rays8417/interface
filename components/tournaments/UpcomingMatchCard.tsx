@@ -50,7 +50,7 @@ export default function UpcomingMatchCard({ match }: UpcomingMatchCardProps) {
           <div className="text-sm font-semibold text-foreground-muted">
             {dateStr} • {timeStr}
           </div>
-          <div className="px-3 py-1 rounded-full text-xs font-semibold bg-warning-bg text-warning flex-shrink-0">
+          <div className="px-3 py-1 rounded-full text-xs font-semibold border-2 border-warning text-warning flex-shrink-0">
             {match.matchFormat || "Cricket"}
           </div>
         </div>

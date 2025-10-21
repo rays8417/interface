@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
+import { useWallets as useSolanaWallets, useExportWallet } from '@privy-io/react-auth/solana';
 import { useState, useEffect } from "react";
 import HowToPlayModal from "./HowToPlayModal";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
@@ -15,12 +15,14 @@ export default function Navbar() {
   const router = useRouter();
   const { authenticated, user, login, logout } = usePrivy();
   const { ready, wallets } = useSolanaWallets();
+  const { exportWallet } = useExportWallet();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
+  const [showExportWarning, setShowExportWarning] = useState(false);
 
   const { availableTokens } = useLiquidityPairs();
   const { balances } = useTokenBalances(walletAddress || undefined, availableTokens);
@@ -33,6 +35,14 @@ export default function Navbar() {
     }
     setWalletAddress(wallets[0].address);
   }, [ready, wallets]);
+
+  // Check if user has an embedded wallet (can only export embedded wallets)
+  // For Solana, check user.wallet (singular) for embedded wallet
+  // The wallet should have walletClientType === 'privy' and chainType === 'solana'
+  const userAny = user as any;
+  const hasEmbeddedWallet = 
+    userAny?.wallet?.walletClientType === 'privy' && 
+    userAny?.wallet?.chainType === 'solana';
 
   // Close dropdown on Escape key or click outside
   useEffect(() => {
@@ -229,6 +239,17 @@ export default function Navbar() {
                     <div 
                       className="absolute top-full mt-2 right-0 z-[101] min-w-full bg-surface-elevated border border-border rounded-lg shadow-xl overflow-hidden"
                     >
+                      {hasEmbeddedWallet && (
+                        <button
+                          onClick={() => {
+                            setShowExportWarning(true);
+                            setShowLogout(false);
+                          }}
+                          className="w-full px-4 py-3 text-sm text-left text-foreground hover:bg-surface transition-colors font-medium border-b border-border"
+                        >
+                          Export Wallet
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           handleDisconnect();
@@ -362,16 +383,30 @@ export default function Navbar() {
                     </svg>
                   </button>
                   {showLogout && (
-                    <button
-                      onClick={() => {
-                        handleDisconnect();
-                        setMobileOpen(false);
-                        setShowLogout(false);
-                      }}
-                      className="w-full px-4 py-3 text-sm rounded-lg bg-surface-elevated border border-border text-error hover:bg-surface transition-colors font-medium"
-                    >
-                      Logout
-                    </button>
+                    <div className="space-y-2">
+                      {hasEmbeddedWallet && (
+                        <button
+                          onClick={() => {
+                            setShowExportWarning(true);
+                            setMobileOpen(false);
+                            setShowLogout(false);
+                          }}
+                          className="w-full px-4 py-3 text-sm rounded-lg bg-surface-elevated border border-border text-foreground hover:bg-surface transition-colors font-medium"
+                        >
+                          Export Wallet
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          handleDisconnect();
+                          setMobileOpen(false);
+                          setShowLogout(false);
+                        }}
+                        className="w-full px-4 py-3 text-sm rounded-lg bg-surface-elevated border border-border text-error hover:bg-surface transition-colors font-medium"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   )}
                   <button
                     onClick={() => setMobileOpen(false)}
@@ -401,6 +436,56 @@ export default function Navbar() {
       isOpen={howToPlayOpen} 
       onClose={() => setHowToPlayOpen(false)} 
     />
+    
+    {/* Export Wallet Warning Modal */}
+    {showExportWarning && (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div 
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowExportWarning(false)}
+        />
+        <div className="relative bg-surface border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6">
+          {/* Close button */}
+          <button
+            onClick={() => setShowExportWarning(false)}
+            className="absolute top-4 right-4 text-foreground-muted hover:text-foreground transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-foreground">Export Wallet</h2>
+
+          {/* Description */}
+          <p className="text-foreground-muted text-sm">
+            Export your wallet&apos;s private key to use with other Solana wallets like Phantom or Solflare.
+          </p>
+
+          {/* Warning Box */}
+          <div className="border-2 border-error rounded-lg p-4 space-y-2 bg-surface/30">
+            <h3 className="text-error font-semibold text-sm">Security Warning:</h3>
+            <p className="text-error text-sm">
+              Never share your private key with anyone. Store it securely and only use it in trusted wallets.
+            </p>
+          </div>
+
+          {/* Export Button */}
+          <button
+            onClick={async () => {
+              if (walletAddress) {
+                await exportWallet({ address: walletAddress });
+              }
+              setShowExportWarning(false);
+            }}
+            className="w-full py-3 px-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg transition-colors"
+          >
+            Export Private Key
+          </button>
+        </div>
+      </div>
+    )}
     </>
   );
 }
