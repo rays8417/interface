@@ -5,6 +5,10 @@ import { getAllPlayerInfos, PlayerPosition } from "@/lib/constants";
 import SearchBar from "@/components/ui/SearchBar";
 import EmptyState from "@/components/ui/EmptyState";
 import PlayerCard from "@/components/players/PlayerCard";
+import { useWallet } from "@/hooks/useWallet";
+import { useTokenBalances } from "@/hooks/useTokenBalances";
+import { useVaultDeposit } from "@/hooks/useVaultDeposit";
+import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
 
 type FilterOption = "All" | "BAT" | "BWL" | "AR" | "WK";
 
@@ -18,8 +22,39 @@ const POSITION_LABELS: Record<PlayerPosition, string> = {
 export default function PlayersPage() {
   const [query, setQuery] = useState("");
   const [selectedPosition, setSelectedPosition] = useState<FilterOption>("All");
+  const [loadingPacks, setLoadingPacks] = useState<Record<string, boolean>>({
+    base: false,
+    prime: false,
+    ultra: false
+  });
+
+  const { account } = useWallet();
+  const { availableTokens } = useLiquidityPairs();
+  const { balances, loading: balancesLoading } = useTokenBalances(account?.address, availableTokens);
+  const { executeDeposit } = useVaultDeposit();
 
   const allPlayers = getAllPlayerInfos();
+
+  const handlePackOpen = async (packType: string, amount: number) => {
+    
+    const bosonBalance = balances.boson || 0;
+    
+    
+
+    const packKey = packType.toLowerCase();
+    setLoadingPacks(prev => ({ ...prev, [packKey]: true }));
+
+    try {
+      const result = await executeDeposit(account, amount, bosonBalance);
+      
+      if (result.success) {
+        // Optionally refresh balances or navigate somewhere
+        console.log(`Successfully opened ${packType} pack!`);
+      }
+    } finally {
+      setLoadingPacks(prev => ({ ...prev, [packKey]: false }));
+    }
+  };
 
   const filteredPlayers = useMemo(() => {
     return allPlayers.filter((player) => {
@@ -91,8 +126,12 @@ export default function PlayersPage() {
                 </svg>
                 <span className="text-sm text-foreground-muted font-medium">Contains 20-40 Shares Per Player</span>
               </div>
-              <button className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-                Open Pack
+              <button 
+                onClick={() => handlePackOpen("base", 20)}
+                disabled={loadingPacks.base || balancesLoading || !account}
+                className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingPacks.base ? "Opening..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -125,8 +164,12 @@ export default function PlayersPage() {
                 </svg>
                 <span className="text-sm text-foreground-muted font-medium">Contains 160-350 Shares Per Player</span>
               </div>
-              <button className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-                Open Pack
+              <button 
+                onClick={() => handlePackOpen("prime", 50)}
+                disabled={loadingPacks.prime || balancesLoading || !account}
+                className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingPacks.prime ? "Opening..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -159,8 +202,12 @@ export default function PlayersPage() {
                 </svg>
                 <span className="text-sm text-foreground-muted font-medium">Contains 500-800 Shares Per Player</span>
               </div>
-              <button className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-                Open Pack
+              <button 
+                onClick={() => handlePackOpen("ultra", 100)}
+                disabled={loadingPacks.ultra || balancesLoading || !account}
+                className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingPacks.ultra ? "Opening..." : "Open Pack"}
               </button>
             </div>
           </div>

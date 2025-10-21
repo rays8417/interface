@@ -15,6 +15,10 @@ export const getSolanaConnection = () => new Connection(SOLANA_RPC_URL, COMMITME
 export const SWAP_PROGRAM_ID = new PublicKey("7VFS76Bvrfj35GDho97B8HxgToW9Rpk6zLnx1VwwJhKD");
 export const AMM_PDA = new PublicKey("4ZnuhoWp9csaEm8LZeeNgbgXQ6tHoz4yTw3feA6DiH1e");
 
+// ===== VAULT PROGRAM =====
+export const VAULT_PROGRAM_ID = new PublicKey("FjJCYKXSdtdqQcfJBZnofj2s3vxSR9dSHUdLTDSeBrLA");
+export const VAULT_PDA = new PublicKey("76TtBHwQT6H3PrGYW7idRvzcApQBmGSxJQGBYFJpvark");
+
 // ===== TOKEN CONFIGURATION =====
 export const TOKEN_DECIMALS = 3;
 export const DECIMAL_MULTIPLIER = Math.pow(10, TOKEN_DECIMALS);
