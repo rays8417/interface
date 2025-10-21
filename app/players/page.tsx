@@ -166,15 +166,27 @@ export default function PlayersPage() {
           </div>
         </div>
 
+        {/* Players Section Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Players</h1>
-          <p className="text-foreground-muted text-sm">
-            Browse all available players on the platform
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Players</h1>
+              <p className="text-foreground-muted text-sm">
+                Browse and buy shares of your favorite cricket players
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-4">
+              <div className="text-center px-6 py-3 bg-card border border-border rounded-lg">
+                <div className="text-2xl font-bold text-foreground">{allPlayers.length}</div>
+                <div className="text-xs text-foreground-muted">Total Players</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="border border-border rounded-xl p-6 bg-card">
+        <div className="border border-border rounded-xl p-6 bg-card shadow-sm">
           <div className="flex flex-col gap-6">
+            {/* Search Bar */}
             <SearchBar
               value={query}
               onChange={setQuery}
@@ -185,10 +197,10 @@ export default function PlayersPage() {
             <div className="flex gap-2 overflow-x-auto scrollbar-thin pb-2">
               <button
                 onClick={() => setSelectedPosition("All")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                   selectedPosition === "All"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card-subtle text-foreground-muted hover:bg-card-subtle/80"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted text-foreground-muted hover:bg-muted/80 hover:text-foreground"
                 }`}
               >
                 All ({positionCounts.All})
@@ -197,10 +209,10 @@ export default function PlayersPage() {
                 <button
                   key={position}
                   onClick={() => setSelectedPosition(position)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                     selectedPosition === position
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card-subtle text-foreground-muted hover:bg-card-subtle/80"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted text-foreground-muted hover:bg-muted/80 hover:text-foreground"
                   }`}
                 >
                   {POSITION_LABELS[position]} ({positionCounts[position]})
@@ -210,15 +222,25 @@ export default function PlayersPage() {
 
             {/* Players Grid */}
             <div>
-              <div className="text-sm font-medium text-foreground mb-4">
-                {selectedPosition === "All"
-                  ? "All Players"
-                  : POSITION_LABELS[selectedPosition]}{" "}
-                ({filteredPlayers.length})
+              <div className="flex items-center justify-between mb-5">
+                <div className="text-sm font-semibold text-foreground">
+                  {selectedPosition === "All"
+                    ? "All Players"
+                    : POSITION_LABELS[selectedPosition]}{" "}
+                  <span className="text-foreground-muted">({filteredPlayers.length})</span>
+                </div>
+                {filteredPlayers.length > 0 && (
+                  <div className="text-xs text-foreground-subtle flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Click any card to buy shares
+                  </div>
+                )}
               </div>
 
               {filteredPlayers.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {filteredPlayers.map((player) => (
                     <PlayerCard key={player.name} player={player} />
                   ))}

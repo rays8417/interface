@@ -35,7 +35,7 @@ export default function Home() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-surface/50 backdrop-blur-md border border-border animate-fade-in">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-            <span className="text-sm font-medium text-foreground-muted">Beta is now live</span>
+            <span className="text-sm font-medium text-foreground-muted">Beta is now live on Solana</span>
           </div>
 
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-foreground animate-fade-in-up">
