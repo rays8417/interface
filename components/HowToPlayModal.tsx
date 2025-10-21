@@ -103,12 +103,12 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
             </div>
 
             {/* Fantasy Points Link */}
-            <div className="text-center">
+            <div className="ml-10">
               <a
                 href="/fantasy-points"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-400 text-sm font-medium transition-colors animate-pulse cursor-pointer inline-block"
+                className="text-blue-500 hover:text-blue-400 text-sm font-medium transition-colors cursor-pointer inline-block"
               >
                 Click to see how fantasy points are calculated
               </a>
