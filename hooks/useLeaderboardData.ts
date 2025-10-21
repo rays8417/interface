@@ -23,7 +23,7 @@ export function useLeaderboardData() {
         
         // Fetch universal leaderboard data
         const leaderboardResponse = await axios.get(
-          `${getApiUrl()}/api/user-rewards/leaderboard/universal`
+          `${getApiUrl()}/api/user-rewards/leaderboard/alltime`
         );
         
         const leaderboardData = leaderboardResponse.data.leaderboard || [];
