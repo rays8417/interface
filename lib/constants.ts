@@ -81,6 +81,11 @@ const PLAYER_MINTS = {
   KharyPierre: "7uQQwoYigCfvh18rdbSqixbJ8imQV2b6ou3MTwrzmH5a",
   MohammedSiraj: "253unST1UwE1Ykg3BWF68iGajhzAkajzQKNQU4QueR2P",
   AlickAthanaze: "9LS4Prb6wS8TpjjztkWVRG2k81NPbpuhwZEXcv1qff43",
+  MitchellMarsh: "ChkZMTQYbvDWa8JMjzaaaY9qoXJydqAihnpcBErX51wg",
+  AlexCarey: "ER4Jb1sjwmDLLCaLxyndsghpr4dCrZXx9DpPoUk247Dw",
+  CooperConnolly: "9sncytigXqjYY88cPY57scabSY3Lvv1HxiwMQjAJZUSe",
+  MatthewShort: "B3p85TexdWYuRZEPHZvxdknmdz5GHKHfCMHxxahyTVjn",
+  MitchellStarc: "A8GDDxW1XrgJZa2atQF62HiyWfdv21ZpPCDF456C91vy",
 };
 
 export const POOL_ADDRESSES = {
@@ -109,6 +114,11 @@ export const POOL_ADDRESSES = {
   KharyPierre: "BrMpcXBEGs4CStAQLC1QegkkWuyduQKDLFq5VsKtCPZL",
   MohammedSiraj: "GBN2YumWRGAPAwZbywd2Q5txpRgwpLn7MB5FqLD86rCP",
   AlickAthanaze: "3skaq6tdwJsF8k4Q7yHeCyUZ75wR7K9DsqoHHLoBiDeL",
+  MitchellMarsh: "7oiQMF9v8GNQLCB6AeD6XzvAhBeFxnTfy9Cc2WxaQJ1F",
+  AlexCarey: "HjBVdUL7FfNngK7HNeWPzWu5wgL2uyZsd2qTVFt7SySb",
+  CooperConnolly: "2RrRq8BXY3HZW2ez4Nz71H8Z9erqxTyHRwnFV85HkaQf",
+  MatthewShort: "7Wg9F36DouRYdAGDcqKaj42EJFsi8DKQBD14MdQAGbFg",
+  MitchellStarc: "GiRpNU9CQKABbR9PUke9PaWAZ8X81kERd9reWAmDEUHq",
 };
 
 // ===== PLAYER MAPPING =====
@@ -337,6 +347,51 @@ export const PLAYER_MAPPING: Record<string, PlayerInfo> = {
     avatar: "WS",
     imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=WashingtonSundar",
     mint: new PublicKey(PLAYER_MINTS.WashingtonSundar),
+  },
+  MitchellMarsh: {
+    displayName: "Mitchell Marsh",
+    name: "Mitchell Marsh",
+    team: "AUS",
+    position: "AR",
+    avatar: "MM",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=MitchellMarsh",
+    mint: new PublicKey(PLAYER_MINTS.MitchellMarsh),
+  },
+  AlexCarey: {
+    displayName: "Alex Carey",
+    name: "Alex Carey",
+    team: "AUS",
+    position: "WK",
+    avatar: "AC",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=AlexCarey",
+    mint: new PublicKey(PLAYER_MINTS.AlexCarey),
+  },
+  CooperConnolly: {
+    displayName: "Cooper Connolly",
+    name: "Cooper Connolly",
+    team: "AUS",
+    position: "AR",
+    avatar: "CC",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=CooperConnolly",
+    mint: new PublicKey(PLAYER_MINTS.CooperConnolly),
+  },
+  MatthewShort: {
+    displayName: "Matthew Short",
+    name: "Matthew Short",
+    team: "AUS",
+    position: "BAT",
+    avatar: "MS",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=MatthewShort",
+    mint: new PublicKey(PLAYER_MINTS.MatthewShort),
+  },
+  MitchellStarc: {
+    displayName: "Mitchell Starc",
+    name: "Mitchell Starc",
+    team: "AUS",
+    position: "BWL",
+    avatar: "MS",
+    imageUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=MitchellStarc",
+    mint: new PublicKey(PLAYER_MINTS.MitchellStarc),
   },
 };
 
