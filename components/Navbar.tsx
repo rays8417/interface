@@ -25,7 +25,7 @@ export default function Navbar() {
   const [showExportWarning, setShowExportWarning] = useState(false);
 
   const { availableTokens } = useLiquidityPairs();
-  const { balances } = useTokenBalances(walletAddress || undefined, availableTokens);
+  const { balances, loading: balancesLoading } = useTokenBalances(walletAddress || undefined, availableTokens);
   const isLanding = pathname === "/";
 
   useEffect(() => {
@@ -201,7 +201,16 @@ export default function Navbar() {
                   <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                     B
                   </div>
-                  <span className="font-medium">{balances.boson?.toFixed(2) || '0.00'}</span>
+                  <span className="font-medium">
+                    {balancesLoading ? (
+                      <div className="flex items-center gap-1">
+                        
+                        <span className="text-xs">Loading...</span>
+                      </div>
+                    ) : (
+                      balances.boson?.toFixed(2) || '0.00'
+                    )}
+                  </span>
                 </div>
                 <div className="relative">
                   <button
@@ -263,13 +272,40 @@ export default function Navbar() {
                   )}
                 </div>
               </div>
+            ) : !ready || (authenticated && !walletAddress) ? (
+              // Skeleton loading state when wallet is connecting or address is being fetched
+              <div className="flex items-center gap-3">
+                {/* Boson Balance Skeleton - exact same styling as real component */}
+                <div className="flex items-center gap-2 px-5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    B
+                  </div>
+                  <span className="font-medium">
+                    <div className="h-4 w-8 bg-gray-300 rounded animate-pulse"></div>
+                  </span>
+                </div>
+                {/* Wallet Address Skeleton - matches font-mono and exact character count */}
+                <div className="relative">
+                  <div className="px-1 py-2 bg-muted text-foreground text-sm font-mono rounded-md border border-border">
+                    <div className="h-4 w-[7.5rem] bg-gray-300 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                {/* User Dropdown Skeleton - matches button styling with arrow */}
+                <div className="relative">
+                  <div className="flex items-center gap-2 px-1 py-2 text-sm rounded-md border border-border bg-muted">
+                    <div className="h-4 w-[10rem] bg-gray-300 rounded animate-pulse"></div>
+                    <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             ) : (
               <button
                 onClick={handleConnect}
-                disabled={!ready}
-                className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
-                {!ready ? "Loading..." : "Connect Wallet"}
+                Connect Wallet
               </button>
             )}
           </div>

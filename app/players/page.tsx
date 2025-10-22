@@ -173,10 +173,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("base", 20)}
-                disabled={loadingPacks.base || !account}
+                disabled={loadingPacks.base || !account || balancesLoading}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.base ? "Opening..." : "Open Pack"}
+                {loadingPacks.base ? "Opening..." : balancesLoading ? "Loading..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -211,10 +211,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("prime", 50)}
-                disabled={loadingPacks.prime || !account}
+                disabled={loadingPacks.prime || !account || balancesLoading}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.prime ? "Opening..." : "Open Pack"}
+                {loadingPacks.prime ? "Opening..." : balancesLoading ? "Loading..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -249,10 +249,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("ultra", 100)}
-                disabled={loadingPacks.ultra || !account}
+                disabled={loadingPacks.ultra || !account || balancesLoading}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.ultra ? "Opening..." : "Open Pack"}
+                {loadingPacks.ultra ? "Opening..." : balancesLoading ? "Loading..." : "Open Pack"}
               </button>
             </div>
           </div>
