@@ -199,6 +199,16 @@ export default function EligiblePlayersModal({
                     )}
                   </div>
 
+                  {/* Warning about final playing players */}
+                  <div className=" border border-orange-500 rounded-lg p-4">
+                    <div className="text-center">
+                      
+                      <p className="text-sm text-orange-400">
+                        Final playing players are decided after the toss. Players listed here are eligible but may not all participate in the actual match.
+                      </p>
+                    </div>
+                  </div>
+
                   <SearchBar
                     value={query}
                     onChange={setQuery}

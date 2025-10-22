@@ -86,8 +86,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                   4
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-1">Weekly Tournaments</h3>
-                  <p className="text-sm text-foreground-muted">Tournaments are held weekly for regular seasons. Compete and climb the leaderboard!</p>
+                  <h3 className="font-semibold text-foreground mb-1">Hold your shares through the tournament</h3>
+                  <p className="text-sm text-foreground-muted">Keep your player tokens throughout the tournament to earn rewards based on their performance.</p>
                 </div>
               </div>
 
@@ -96,8 +96,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                   5
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-1">Hold Your Players During Tournaments</h3>
-                  <p className="text-sm text-foreground-muted">Keep your player tokens throughout the tournament to earn rewards based on their performance.</p>
+                  <h3 className="font-semibold text-foreground mb-1">Weekly Tournaments</h3>
+                  <p className="text-sm text-foreground-muted">Tournaments are held weekly for regular seasons. Compete and climb the leaderboard!</p>
                 </div>
               </div>
 
