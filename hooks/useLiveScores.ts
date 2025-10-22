@@ -73,14 +73,17 @@ export function useLiveScores(
         `${getApiUrl()}/api/live-scores/${tournamentId}`
       );
 
-      setData(response.data);
-      setIsPollingActive(response.data.pollingActive);
-      
-      console.log(`✅ Live scores updated: ${response.data.totalEligiblePlayers} players`);
+      // Only update data if we got a valid response
+      if (response.data && response.data.players) {
+        setData(response.data);
+        setIsPollingActive(response.data.pollingActive);
+        console.log(`✅ Live scores updated: ${response.data.totalEligiblePlayers} players`);
+      }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || "Failed to fetch live scores";
       setError(errorMessage);
       console.error("Live scores fetch error:", err);
+      // Keep existing data on error
     } finally {
       setLoading(false);
     }

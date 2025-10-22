@@ -73,7 +73,10 @@ export default function HoldingsTable({ holdings, className = "" }: HoldingsTabl
                 </div>
               </div>
               <div className="col-span-3 text-right">
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex items-center justify-end gap-2">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    B
+                  </div>
                   <span className="font-medium text-foreground">
                     {holding.price.toFixed(6)}
                   </span>

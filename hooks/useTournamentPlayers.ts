@@ -76,6 +76,7 @@ export function useTournamentPlayers(
     if (tournamentStatus === "ONGOING") {
       if (liveScores.players && liveScores.players.length > 0 && !initialLoadDone) {
         // Initial load: Create player structure
+        console.log(`📊 Initial load: ${liveScores.players.length} players`);
         setPlayers(
           liveScores.players.map((player) => ({
             id: player.moduleName,
@@ -123,16 +124,24 @@ export function useTournamentPlayers(
     };
 
     fetchPlayers();
-  }, [tournamentId, tournamentStatus, walletAddress, liveScores.players.length, initialLoadDone, liveScores.loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournamentId, tournamentStatus, walletAddress]);
 
   // Update only fantasy points when live scores change (smooth updates)
   useEffect(() => {
     if (tournamentStatus !== "ONGOING" || !initialLoadDone) return;
     if (!liveScores.players || liveScores.players.length === 0) return;
 
+    console.log(`🔄 Updating scores for ${liveScores.players.length} players`);
+    
     // Only update fantasy points, don't recreate entire player objects
-    setPlayers((currentPlayers) =>
-      currentPlayers.map((player) => {
+    setPlayers((currentPlayers) => {
+      if (currentPlayers.length === 0) {
+        console.warn("⚠️ No current players to update!");
+        return currentPlayers;
+      }
+      
+      return currentPlayers.map((player) => {
         const livePlayer = liveScores.players.find(
           (lp) => lp.moduleName === player.moduleName
         );
@@ -143,13 +152,13 @@ export function useTournamentPlayers(
           };
         }
         return player;
-      })
-    );
+      });
+    });
   }, [liveScores.players, tournamentStatus, initialLoadDone]);
 
   return { 
     players, 
-    loading,
+    loading: loading || (tournamentStatus === "ONGOING" && liveScores.loading && players.length === 0),
     // Expose live scores info for ONGOING tournaments
     liveInfo: tournamentStatus === "ONGOING" ? {
       lastUpdated: liveScores.lastUpdated,

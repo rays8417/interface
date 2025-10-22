@@ -30,7 +30,7 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
     hour12: true,
   });
 
-  const isClickable = onClick && tournament.status === "COMPLETED";
+  const isClickable = !!onClick;
 
   return (
     <div 
@@ -79,7 +79,7 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
               tournament.status === "UPCOMING"
                 ? "bg-info/10 text-info border-info/30"
                 : tournament.status === "ONGOING"
-                ? "bg-error/10 text-error border-error/30 animate-pulse"
+                ? "bg-error/10 text-error border-error/30"
                 : "bg-success/10 text-success border-success/30"
             }`}
           >
@@ -103,17 +103,28 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
 
         {tournament.totalRewardPool && tournament.totalRewardPool > 0 && (
           <div className="mt-1 pt-3 border-t border-border/50">
-            <div className="text-base font-bold text-foreground">
-              {tournament.totalRewardPool.toLocaleString()} BOSON
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                B
+              </div>
+              <span className="text-base font-semibold text-foreground">
+                {tournament.totalRewardPool.toLocaleString()}
+              </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Click indicator for completed tournaments */}
+      {/* Click indicator */}
       {isClickable && (
         <div className="flex items-center justify-center gap-2 text-xs text-foreground-muted group-hover:text-primary transition-colors pt-2 border-t border-border/50 mt-2">
-          <span className="font-semibold">Click to view details</span>
+          <span className="font-semibold">
+            {tournament.status === "COMPLETED" 
+              ? "Click to view results" 
+              : tournament.status === "ONGOING"
+              ? "Click to view live stats"
+              : "Click to view eligible players"}
+          </span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             className="h-4 w-4 group-hover:translate-x-1 transition-transform" 

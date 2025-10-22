@@ -28,10 +28,12 @@ export default function RewardsSummary({ userRewards, isLoading, address }: Rewa
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    B
+                  </div>
                   <span className="text-2xl font-bold text-foreground">
                     {userRewards?.totalEarnings?.toFixed(2) || "0.00"}
                   </span>
-                  <span className="text-sm text-foreground-muted">BOSON</span>
                 </div>
               )}
             </div>
