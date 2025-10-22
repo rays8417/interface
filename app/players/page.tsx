@@ -5,10 +5,12 @@ import { getAllPlayerInfos, PlayerPosition } from "@/lib/constants";
 import SearchBar from "@/components/ui/SearchBar";
 import EmptyState from "@/components/ui/EmptyState";
 import PlayerCard from "@/components/players/PlayerCard";
+import PackOpeningModal from "@/components/packs/PackOpeningModal";
 import { useWallet } from "@/hooks/useWallet";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useVaultDeposit } from "@/hooks/useVaultDeposit";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
+import { usePackOpening } from "@/hooks/usePackOpening";
 
 type FilterOption = "All" | "BAT" | "BWL" | "AR" | "WK";
 
@@ -28,32 +30,75 @@ export default function PlayersPage() {
     ultra: false
   });
 
+  // Pack opening modal states
+  const [showPackOpening, setShowPackOpening] = useState(false);
+  const [currentPack, setCurrentPack] = useState<{
+    packId: string;
+    packType: string;
+    totalValue: number;
+  } | null>(null);
+
   const { account } = useWallet();
   const { availableTokens } = useLiquidityPairs();
   const { balances, loading: balancesLoading } = useTokenBalances(account?.address, availableTokens);
   const { executeDeposit } = useVaultDeposit();
+  const { getLatestUnopenedPack } = usePackOpening();
 
   const allPlayers = getAllPlayerInfos();
 
   const handlePackOpen = async (packType: string, amount: number) => {
-    
-    const bosonBalance = balances.boson || 0;
-    
-    
+    if (!account) {
+      console.error("No account connected");
+      return;
+    }
 
+    const bosonBalance = balances.boson || 0;
     const packKey = packType.toLowerCase();
     setLoadingPacks(prev => ({ ...prev, [packKey]: true }));
 
     try {
-      const result = await executeDeposit(account, amount, bosonBalance);
+      // First execute the deposit transaction
+      const depositResult = await executeDeposit(account, amount, bosonBalance);
       
-      if (result.success) {
-        // Optionally refresh balances or navigate somewhere
-        console.log(`Successfully opened ${packType} pack!`);
+      if (depositResult.success) {
+        // Show modal immediately with loading state
+        const packData = {
+          packId: `loading_${packType}_${Date.now()}`, // Temporary ID while loading
+          packType: packType.charAt(0).toUpperCase() + packType.slice(1),
+          totalValue: amount
+        };
+
+        setCurrentPack(packData);
+        setShowPackOpening(true);
+        
+        // After showing modal, get the latest unopened pack
+        const packTypeUpper = packType.toUpperCase();
+        const packResult = await getLatestUnopenedPack(account.address, packTypeUpper);
+        
+        if (packResult.success && packResult.data) {
+          // Update with real pack data from backend
+          const realPackData = {
+            packId: packResult.data.id,
+            packType: packResult.data.packType,
+            totalValue: Number(packResult.data.totalValue)
+          };
+
+          setCurrentPack(realPackData);
+          console.log(`Successfully purchased ${packType} pack!`);
+        } else {
+          console.error("Failed to get pack data:", packResult.error);
+        }
       }
+    } catch (error) {
+      console.error("Pack opening failed:", error);
     } finally {
       setLoadingPacks(prev => ({ ...prev, [packKey]: false }));
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowPackOpening(false);
+    setCurrentPack(null);
   };
 
   const filteredPlayers = useMemo(() => {
@@ -124,7 +169,7 @@ export default function PlayersPage() {
                 <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-sm text-foreground-muted font-medium">Contains 20-40 Shares Per Player</span>
+                <span className="text-sm text-foreground-muted font-medium">Contains 150-700 Shares Per Player</span>
               </div>
               <button 
                 onClick={() => handlePackOpen("base", 20)}
@@ -162,7 +207,7 @@ export default function PlayersPage() {
                 <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-sm text-foreground-muted font-medium">Contains 160-350 Shares Per Player</span>
+                <span className="text-sm text-foreground-muted font-medium">Contains 350-1,800 Shares Per Player</span>
               </div>
               <button 
                 onClick={() => handlePackOpen("prime", 50)}
@@ -200,7 +245,7 @@ export default function PlayersPage() {
                 <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-sm text-foreground-muted font-medium">Contains 500-800 Shares Per Player</span>
+                <span className="text-sm text-foreground-muted font-medium">Contains 750-3,500 Shares Per Player</span>
               </div>
               <button 
                 onClick={() => handlePackOpen("ultra", 100)}
@@ -317,6 +362,17 @@ export default function PlayersPage() {
           </div>
         </div>
       </div>
+
+      {/* Pack Opening Modal */}
+      {currentPack && (
+        <PackOpeningModal
+          isOpen={showPackOpening}
+          onClose={handleCloseModal}
+          packId={currentPack.packId}
+          packType={currentPack.packType}
+          totalValue={currentPack.totalValue}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorDisplay from "@/components/ui/ErrorDisplay";
 import RewardsSummary from "@/components/my-teams/RewardsSummary";
 import HoldingsTable from "@/components/my-teams/HoldingsTable";
+import PacksSection from "@/components/packs/PacksSection";
 import { useUserRewards } from "@/hooks/useUserRewards";
 import { usePlayerHoldings } from "@/hooks/usePlayerHoldings";
 
@@ -72,16 +73,26 @@ export default function MyTeamsPage() {
           address={address}
         />
 
-        <div className="mb-6">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search players or teams..."
-            className="max-w-md"
-          />
-        </div>
+        {/* Packs Section */}
+        <PacksSection walletAddress={address} />
 
-        <HoldingsTable holdings={filteredHoldings} />
+        {/* Player Holdings Section */}
+        <div className="space-y-6 mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">Player Holdings</h2>
+          </div>
+          
+          <div className="mb-6">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search players or teams..."
+              className="max-w-md"
+            />
+          </div>
+
+          <HoldingsTable holdings={filteredHoldings} />
+        </div>
       </div>
     </div>
   );

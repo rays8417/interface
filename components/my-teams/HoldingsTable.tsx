@@ -18,6 +18,7 @@ interface HoldingsTableProps {
 }
 
 export default function HoldingsTable({ holdings, className = "" }: HoldingsTableProps) {
+  console.log(holdings);
   return (
     <div className={`mt-8 bg-card border border-border rounded-lg shadow-sm overflow-hidden ${className}`}>
       {/* Table Header */}
