@@ -19,11 +19,13 @@ export default function MyTeamsPage() {
   const { userRewards, loading: rewardsLoading } = useUserRewards(address);
   const { holdings, loading, error } = usePlayerHoldings(address);
 
-  const filteredHoldings = holdings.filter(
-    (holding) =>
-      holding.playerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      holding.team.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredHoldings = holdings
+    .filter(
+      (holding) =>
+        holding.playerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        holding.team.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => b.shares - a.shares); // Sort by shares in descending order
 
   if (loading) {
     return (
