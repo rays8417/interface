@@ -96,6 +96,16 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                   5
                 </div>
                 <div>
+                  <h3 className="font-semibold text-foreground mb-1">Hold Your Players During Tournaments</h3>
+                  <p className="text-sm text-foreground-muted">Keep your player tokens throughout the tournament to earn rewards based on their performance.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+                  6
+                </div>
+                <div>
                   <h3 className="font-semibold text-foreground mb-1">Earn Rewards</h3>
                   <p className="text-sm text-foreground-muted">When a tournament ends, each player is assigned a score. You&apos;re rewarded based on your holdings!</p>
                 </div>

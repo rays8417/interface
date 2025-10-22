@@ -272,12 +272,12 @@ export default function TokenInput({
             </div>
           ) : token.name === "BOSON" ? (
             <>
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-surface-elevated to-muted shadow-lg flex items-center justify-center ring-2 ring-border">
-                <span className="text-foreground font-bold text-lg">B</span>
+              <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg">
+                <span className="font-bold text-lg">B</span>
               </div>
               <div className="text-left">
                 <div className="font-bold text-foreground text-lg leading-tight">BOSON</div>
-                <div className="text-xs text-foreground-subtle font-medium">Base Token</div>
+                {/* <div className="text-xs text-foreground-subtle font-medium">Base Token</div> */}
               </div>
             </>
           ) : (

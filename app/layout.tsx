@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Navbar from "../components/Navbar";
 import PrivyProviderWrapper from "../contexts/PrivyProvider";
+import ClientWrapper from "../components/ClientWrapper";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -36,7 +37,9 @@ export default function RootLayout({
       >
         <PrivyProviderWrapper>
           <Navbar />
-          <main className="min-h-[calc(100vh-64px)]">{children}</main>
+          <ClientWrapper>
+            <main className="min-h-[calc(100vh-64px)]">{children}</main>
+          </ClientWrapper>
           <Toaster 
             position="bottom-right"
             containerStyle={{
