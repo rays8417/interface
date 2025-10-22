@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { getSolanaConnection, DECIMAL_MULTIPLIER, BOSON_MINT, VAULT_PROGRAM_ID, VAULT_PDA } from "@/lib/constants";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
+import { useBalanceRefresh } from "./useBalanceRefresh";
 
 const connection = getSolanaConnection();
 
@@ -21,6 +22,7 @@ export function useVaultDeposit() {
   const [loading, setLoading] = useState(false);
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
+  const { triggerRefresh } = useBalanceRefresh();
 
   const executeDeposit = async (
     account: any,
@@ -171,6 +173,7 @@ export function useVaultDeposit() {
         );
 
         toast.success(`Pack opened successfully! Deposited ${amount} BOSON 🎉`);
+        triggerRefresh(); // Refresh token balances after successful deposit
         return { success: true };
       } catch (confirmError: any) {
         console.warn("Confirmation timeout, checking status...");
@@ -180,6 +183,7 @@ export function useVaultDeposit() {
         });
         if (tx && !tx.meta?.err) {
           toast.success(`Pack opened successfully! Deposited ${amount} BOSON 🎉`);
+          triggerRefresh(); // Refresh token balances after successful deposit
           return { success: true };
         } else {
           toast.error("Transaction may have failed. Check explorer.");

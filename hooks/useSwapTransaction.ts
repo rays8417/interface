@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { getSolanaConnection, SWAP_PROGRAM_ID, DECIMAL_MULTIPLIER, SLIPPAGE_TOLERANCE } from "@/lib/constants";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
+import { useBalanceRefresh } from "./useBalanceRefresh";
 
 const connection = getSolanaConnection();
 
@@ -19,6 +20,7 @@ export function useSwapTransaction() {
   const [loading, setLoading] = useState(false);
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
+  const { triggerRefresh } = useBalanceRefresh();
 
   const executeSwap = async (
     account: any,
@@ -231,6 +233,7 @@ export function useSwapTransaction() {
         );
 
         toast.success("Swap successful! 🎉");
+        triggerRefresh(); // Refresh token balances after successful swap
         return { success: true };
       } catch (confirmError: any) {
         console.warn("Confirmation timeout, checking status...");
@@ -240,6 +243,7 @@ export function useSwapTransaction() {
         });
         if (tx && !tx.meta?.err) {
           toast.success("Swap successful! 🎉");
+          triggerRefresh(); // Refresh token balances after successful swap
           return { success: true };
         } else {
           toast.error("Transaction may have failed. Check explorer.");

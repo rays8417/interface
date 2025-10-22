@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { PLAYER_MAPPING } from "@/lib/constants";
 import { usePackOpening } from "@/hooks/usePackOpening";
+import { useBalanceRefresh } from "@/hooks/useBalanceRefresh";
 
 interface PackPlayer {
   amount: number;
@@ -37,6 +38,7 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
   const [showPreview, setShowPreview] = useState(true); // Controls front/back of the modal
   
   const { loading, error, openPack } = usePackOpening();
+  const { triggerRefresh } = useBalanceRefresh();
 
   useEffect(() => {
     setMounted(true);
@@ -79,6 +81,9 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
     
     if (result.success && result.data) {
       setPackPlayers(result.data.players);
+      
+      // Refresh token balances after successful pack opening
+      triggerRefresh();
       
       // Trigger flip animation after a short delay
       setTimeout(() => {
