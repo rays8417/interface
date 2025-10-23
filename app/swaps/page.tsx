@@ -177,21 +177,7 @@ function SwapsPageContent() {
               </p>
             </div>
 
-            {account ? (
-              <div className="flex items-center gap-3 bg-surface-elevated border border-border rounded-xl px-4 py-3">
-                <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
-                <div className="text-left">
-                  <a 
-                    href="https://boson-faucet.vercel.app/" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    Get Testnet BOSON
-                  </a>
-                </div>
-              </div>
-            ) : (
+            {!account && (
               <div className="border-2 border-warning rounded-xl px-4 py-3 bg-surface/30">
                 <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
                 <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
@@ -255,21 +241,7 @@ function SwapsPageContent() {
             </p>
           </div>
 
-          {account ? (
-            <div className="flex items-center gap-3 bg-surface-elevated border border-border rounded-xl px-4 py-3">
-              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
-              <div className="text-left">
-                <a 
-                  href="https://boson-faucet.vercel.app/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                >
-                  Get Testnet BOSON
-                </a>
-              </div>
-            </div>
-          ) : (
+          {!account && (
             <div className="border-2 border-warning rounded-xl px-4 py-3 bg-surface/30">
               <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
               <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
