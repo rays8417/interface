@@ -137,7 +137,7 @@ export function useTournamentPlayers(
 
     fetchPlayers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tournamentId, tournamentStatus, walletAddress]);
+  }, [tournamentId, tournamentStatus, walletAddress, liveScores.players, initialLoadDone]);
 
   // Update only fantasy points when live scores change (smooth updates)
   useEffect(() => {
