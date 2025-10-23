@@ -307,4 +307,37 @@ body {
   input::placeholder, textarea::placeholder {
     @apply text-foreground-subtle;
   }
+  :root {
+    /* Sidebar Colors - Match original dark theme exactly */
+    --sidebar-background: 18 18 24; /* #121218 - Same as surface */
+    --sidebar-foreground: 250 250 250; /* #fafafa - Same as foreground */
+    --sidebar-primary: 28 156 240; /* #1c9cf0 - Same as primary */
+    --sidebar-primary-foreground: 255 255 255; /* #ffffff */
+    --sidebar-accent: 26 26 26; /* #1a1a1a - Same as muted */
+    --sidebar-accent-foreground: 250 250 250; /* #fafafa */
+    --sidebar-border: 38 38 38; /* #262626 - Same as border */
+    --sidebar-ring: 28 156 240; /* #1c9cf0 - Same as ring */
+  }
+
+  /* Force sidebar to use our dark theme colors */
+  [data-sidebar="sidebar"] {
+    background-color: rgb(15 15 20) !important; /* slightly darker than surface color */
+    border-color: rgb(38 38 38) !important; /* border color */
+    color: rgb(250 250 250) !important; /* foreground color */
+  }
+
+  [data-sidebar="menu-button"] {
+    color: rgb(163 163 163) !important; /* foreground-muted */
+  }
+
+  [data-sidebar="menu-button"]:hover {
+    background-color: rgb(26 26 26) !important; /* muted */
+    color: rgb(250 250 250) !important; /* foreground */
+  }
+
+  [data-sidebar="menu-button"][data-active="true"] {
+    background-color: rgb(28 156 240 / 0.1) !important; /* primary/10 */
+    color: rgb(28 156 240) !important; /* primary */
+    border-left: 4px solid rgb(28 156 240) !important; /* primary */
+  }
 }

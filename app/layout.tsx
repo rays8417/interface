@@ -7,6 +7,7 @@ import PrivyProviderWrapper from "../contexts/PrivyProvider";
 import { TournamentDataProvider } from "../contexts/TournamentDataContext";
 import ClientWrapper from "../components/ClientWrapper";
 import { Toaster } from "react-hot-toast";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -40,13 +41,17 @@ export default function RootLayout({
       >
         <PrivyProviderWrapper>
           <TournamentDataProvider>
-            <Sidebar />
-            <TopBar />
-            <ContentWrapper>
-              <ClientWrapper>
-                {children}
-              </ClientWrapper>
-            </ContentWrapper>
+            <SidebarProvider>
+              <Sidebar />
+              <SidebarInset>
+                <TopBar />
+                <ContentWrapper>
+                  <ClientWrapper>
+                    {children}
+                  </ClientWrapper>
+                </ContentWrapper>
+              </SidebarInset>
+            </SidebarProvider>
           </TournamentDataProvider>
           <Toaster 
             position="bottom-right"

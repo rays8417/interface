@@ -11,7 +11,7 @@ export default function ContentWrapper({ children }: ContentWrapperProps) {
   const isLanding = pathname === "/";
 
   return (
-    <div className={`min-h-screen ${isLanding ? '' : 'md:ml-64'}`}>
+    <div className="min-h-screen">
       {children}
     </div>
   );
