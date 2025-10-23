@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { getApiUrl } from "@/lib/constants";
 import { useLiveScores } from "./useLiveScores";
+import { useTournamentDataContext } from "@/contexts/TournamentDataContext";
 
 interface Player {
   id: string;
@@ -47,6 +48,8 @@ export function useTournamentPlayers(
   const [players, setPlayers] = useState<TournamentPlayerData[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  
+  const { getPlayersCache, setPlayersCache } = useTournamentDataContext();
 
   const liveScores = useLiveScores(
     tournamentStatus === "ONGOING" ? tournamentId : undefined,
@@ -76,7 +79,6 @@ export function useTournamentPlayers(
     if (tournamentStatus === "ONGOING") {
       if (liveScores.players && liveScores.players.length > 0 && !initialLoadDone) {
         // Initial load: Create player structure
-        console.log(`📊 Initial load: ${liveScores.players.length} players`);
         setPlayers(
           liveScores.players.map((player) => ({
             id: player.moduleName,
@@ -93,6 +95,14 @@ export function useTournamentPlayers(
       return;
     }
 
+    // For UPCOMING tournaments, check cache first
+    const cached = getPlayersCache(tournamentId, walletAddress);
+    if (cached) {
+      setPlayers(cached.players);
+      setLoading(false);
+      return;
+    }
+
     // For UPCOMING tournaments, fetch eligible players
     const fetchPlayers = async () => {
       setLoading(true);
@@ -105,16 +115,18 @@ export function useTournamentPlayers(
         const response = await axios.get(url);
         const eligiblePlayers = response.data.players || [];
 
-        setPlayers(
-          eligiblePlayers.map((player: any) => ({
-            id: player.id,
-            moduleName: player.moduleName,
-            name: player.name,
-            team: player.teamName || "",
-            role: player.role || "",
-            fantasyPoints: player.formattedHoldings || "0",
-          }))
-        );
+        const fetchedPlayers = eligiblePlayers.map((player: any) => ({
+          id: player.id,
+          moduleName: player.moduleName,
+          name: player.name,
+          team: player.teamName || "",
+          role: player.role || "",
+          fantasyPoints: player.formattedHoldings || "0",
+        }));
+
+        setPlayers(fetchedPlayers);
+        // Cache the fetched data
+        setPlayersCache(tournamentId, fetchedPlayers, walletAddress);
       } catch (error) {
         console.error("Error fetching tournament players:", error);
         setPlayers([]);
@@ -131,8 +143,6 @@ export function useTournamentPlayers(
   useEffect(() => {
     if (tournamentStatus !== "ONGOING" || !initialLoadDone) return;
     if (!liveScores.players || liveScores.players.length === 0) return;
-
-    console.log(`🔄 Updating scores for ${liveScores.players.length} players`);
     
     // Only update fantasy points, don't recreate entire player objects
     setPlayers((currentPlayers) => {

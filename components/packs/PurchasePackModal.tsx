@@ -22,7 +22,7 @@ interface PackOpeningModalProps {
   totalValue: number;
 }
 
-export default function PackOpeningModal({ 
+export default function PurchasePackModal({ 
   isOpen, 
   onClose, 
   packId,
@@ -223,126 +223,107 @@ export default function PackOpeningModal({
 
           {/* Back of modal (Opening State) */}
           <div className={`absolute inset-0 w-full backface-hidden rotate-y-180 bg-surface border border-border rounded-xl shadow-2xl p-6 md:p-8 overflow-y-auto custom-scrollbar ${showSuccess ? 'pointer-events-none' : ''}`}>
-              {/* Close button */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-foreground-muted hover:text-foreground transition-colors z-10"
-                aria-label="Close"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* Opening content */}
-              <div className="space-y-6 pt-2">
-                {/* Header */}
-                <div className="text-center space-y-3">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/20 rounded-full mb-2">
-                    <svg className="w-8 h-8 text-primary" fill="currentColor" viewBox="0 0 24 24">
+            <div className="space-y-6 min-h-full flex flex-col">
+              <div className="text-center pt-2">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/20 rounded-full mb-4">
+                  <svg className="w-8 h-8 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                    {packType.toLowerCase() === 'base' ? (
+                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    ) : packType.toLowerCase() === 'prime' ? (
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    ) : (
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl font-bold text-foreground">
-                    Pack Opened! 🎉
-                  </h2>
-                  <p className="text-base text-foreground-muted">
-                    Here are your players!
-                  </p>
+                    )}
+                  </svg>
                 </div>
+                <h2 className="text-3xl font-bold text-foreground">
+                  Pack Opened!
+                </h2>
+              </div>
 
-                {/* Error Display */}
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        className="h-5 w-5 text-red-500"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-red-500 font-medium">Error: {error}</span>
-                    </div>
-                  </div>
-                )}
+              {/* Loading State */}
+              {loading && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent mb-4"></div>
+                  <p className="text-foreground-muted">Opening your pack...</p>
+                </div>
+              )}
 
-                {/* Players List */}
-                {packPlayers.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground text-center pb-2">Your Players</h3>
-                    <div className="grid gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                      {packPlayers.filter(player => player && player.player).map((player, index) => {
-                        const playerInfo = getPlayerInfo(player.player);
-                        return (
-                          <div 
-                            key={index}
-                            className="bg-surface-elevated border border-border rounded-xl p-4 flex items-center gap-4 animate-player-reveal hover:border-border-strong transition-colors"
-                            style={{ animationDelay: `${index * 0.1}s` }}
-                          >
-                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm overflow-hidden border-2 border-primary/20">
-                              {playerInfo.imageUrl ? (
-                                <img
-                                  src={playerInfo.imageUrl}
-                                  alt={playerInfo.displayName}
-                                  className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                    if (fallback) fallback.style.display = "flex";
-                                  }}
-                                />
-                              ) : null}
-                              <span 
-                                className="w-full h-full flex items-center justify-center"
-                                style={{ display: playerInfo.imageUrl ? "none" : "flex" }}
-                              >
-                                {playerInfo.avatar}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-sm text-foreground truncate">{playerInfo.displayName}</div>
-                              <div className="text-xs text-foreground-muted">
-                                {playerInfo.team} • {playerInfo.position}
-                              </div>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <div className="font-bold text-sm text-primary">
-                                {player.amount.toFixed(2)}
-                              </div>
-                              <div className="text-xs text-foreground-muted">shares</div>
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <p className="text-red-400 text-center">{error}</p>
+                </div>
+              )}
+
+              {/* Players List */}
+              {packPlayers.length > 0 && (
+                <div className="space-y-4 flex-grow">
+                  <h3 className="text-lg font-semibold text-foreground text-center pb-2">Your Players</h3>
+                  <div className="grid gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                    {packPlayers.filter(player => player && player.player).map((player, index) => {
+                      const playerInfo = getPlayerInfo(player.player);
+                      return (
+                        <div 
+                          key={index}
+                          className="bg-surface-elevated border border-border rounded-xl p-4 flex items-center gap-4 animate-player-reveal hover:border-border-strong transition-colors"
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                          <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm overflow-hidden border-2 border-primary/20">
+                            {playerInfo.imageUrl ? (
+                              <img
+                                src={playerInfo.imageUrl}
+                                alt={playerInfo.displayName}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                  if (fallback) fallback.style.display = "flex";
+                                }}
+                              />
+                            ) : null}
+                            <span 
+                              className="w-full h-full flex items-center justify-center"
+                              style={{ display: playerInfo.imageUrl ? "none" : "flex" }}
+                            >
+                              {playerInfo.avatar}
+                            </span>
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <div className="font-semibold text-base text-foreground truncate">{playerInfo.displayName}</div>
+                            <div className="text-sm text-foreground-muted">
+                              {playerInfo.team} • {playerInfo.position}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="font-bold text-base text-primary">
+                              {player.amount.toFixed(2)}
+                            </div>
+                            <div className="text-xs text-foreground-muted">shares</div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-3">
-                  <button
-                    onClick={onClose}
-                    className="flex-1 bg-surface-elevated hover:bg-surface border border-border hover:border-border-strong text-foreground font-medium py-2.5 px-4 rounded-xl transition-all duration-200"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => window.location.href = '/holdings'}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 px-4 rounded-xl transition-all duration-200"
-                  >
-                    View Holdings
-                  </button>
                 </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2 mt-2">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 px-6 bg-surface-elevated hover:bg-surface border border-border hover:border-border-strong text-foreground font-semibold rounded-xl transition-all duration-200"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => window.location.href = '/holdings'}
+                  className="flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-200"
+                >
+                  View Holdings
+                </button>
               </div>
+            </div>
           </div>
         </div>
       </div>

@@ -13,7 +13,6 @@ class BalanceRefreshManager {
   }
 
   refresh() {
-    console.log("🔄 Triggering balance refresh for all subscribers");
     this.callbacks.forEach(callback => {
       try {
         callback();

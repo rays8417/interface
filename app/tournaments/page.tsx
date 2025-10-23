@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import TournamentCard from "@/components/tournaments/TournamentCard";
 import PastTournamentModal from "@/components/tournaments/PastTournamentModal";
 import EligiblePlayersModal from "@/components/tournaments/EligiblePlayersModal";
 import { useTournaments } from "@/hooks/useTournaments";
+import { useTournamentDataContext } from "@/contexts/TournamentDataContext";
+import { useWallet } from "@/hooks/useWallet";
 
 interface Tournament {
   id: string;
@@ -30,6 +32,8 @@ export default function TournamentsPage() {
   const [modalType, setModalType] = useState<"past" | "eligible" | null>(null);
   
   const { tournaments, loading: isLoadingTournaments } = useTournaments();
+  const { prefetchTournamentPlayers, prefetchTournamentPerformance } = useTournamentDataContext();
+  const { account } = useWallet();
   
   // Filter tournaments by status
   const liveTournaments = useMemo(() => 
@@ -44,6 +48,16 @@ export default function TournamentsPage() {
     tournaments.filter(t => t.status === "COMPLETED"),
     [tournaments]
   );
+
+  const handleTournamentHover = useCallback((tournament: Tournament) => {
+    // Pre-fetch data when hovering over a tournament card
+    if (tournament.status === "COMPLETED") {
+      prefetchTournamentPerformance(tournament.id);
+    } else if (tournament.status === "UPCOMING") {
+      prefetchTournamentPlayers(tournament.id, tournament.status, account?.address);
+    }
+    // Note: For ONGOING tournaments, we don't pre-fetch as they use live polling
+  }, [prefetchTournamentPerformance, prefetchTournamentPlayers, account?.address]);
 
   const handleTournamentClick = (tournament: Tournament) => {
     setSelectedTournament(tournament);
@@ -200,6 +214,7 @@ export default function TournamentsPage() {
                   key={tournament.id} 
                   tournament={tournament}
                   onClick={() => handleTournamentClick(tournament)}
+                  onHover={() => handleTournamentHover(tournament)}
                 />
               ))}
             </div>

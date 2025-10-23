@@ -3,10 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useWallet } from "../hooks/useWallet";
 import LiquidEther from "../components/LiquidEther";
+import { usePrivy } from "@privy-io/react-auth";
+import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
   const { account, isConnecting, connectWallet } = useWallet();
+  const { ready, authenticated } = usePrivy();
+
+  useEffect(() => {
+    if (!ready) return;
+    if (authenticated) {
+      router.push('/swaps');
+    }
+  }, [ready, authenticated, router]);
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">

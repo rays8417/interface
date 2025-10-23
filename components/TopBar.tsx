@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets as useSolanaWallets, useExportWallet } from '@privy-io/react-auth/solana';
+import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useState, useEffect } from "react";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
@@ -11,12 +11,10 @@ export default function TopBar() {
   const pathname = usePathname();
   const { authenticated, user, login, logout } = usePrivy();
   const { ready, wallets } = useSolanaWallets();
-  const { exportWallet } = useExportWallet();
 
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
-  const [showExportWarning, setShowExportWarning] = useState(false);
 
   const { availableTokens } = useLiquidityPairs();
   const { balances, loading: balancesLoading } = useTokenBalances(walletAddress || undefined, availableTokens);
@@ -137,7 +135,7 @@ export default function TopBar() {
                   className="px-2.5 py-1.5 bg-muted text-foreground text-sm font-mono rounded-md border border-border hover:bg-surface-elevated transition-colors cursor-pointer"
                   title="Click to copy address"
                 >
-                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  {walletAddress}
                 </button>
                 {copied && (
                   <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-green-600 text-white text-xs rounded whitespace-nowrap z-50">
@@ -145,51 +143,18 @@ export default function TopBar() {
                   </div>
                 )}
               </div>
-              <div className="relative" data-dropdown-container>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowLogout(!showLogout);
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 text-sm rounded-md border border-border text-foreground bg-muted hover:bg-surface-elevated transition-colors"
+              {authenticated && walletAddress ? (
+                <a 
+                  href="https://boson-faucet.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium bg-muted text-primary hover:bg-surface-elevated rounded-lg transition-colors border border-border hover:border-primary/50"
                 >
-                  <span>{getUserEmail() || walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4)}</span>
-                  <svg 
-                    className={`w-4 h-4 transition-transform ${showLogout ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {showLogout && (
-                  <div 
-                    className="absolute top-full mt-2 right-0 z-[101] min-w-full bg-surface-elevated border border-border rounded-lg shadow-xl overflow-hidden"
-                  >
-                    {hasEmbeddedWallet && (
-                      <button
-                        onClick={() => {
-                          setShowExportWarning(true);
-                          setShowLogout(false);
-                        }}
-                        className="w-full px-4 py-3 text-sm text-left text-foreground hover:bg-surface transition-colors font-medium border-b border-border"
-                      >
-                        Export Wallet
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        handleDisconnect();
-                        setShowLogout(false);
-                      }}
-                      className="w-full px-4 py-3 text-sm text-left text-error hover:bg-surface transition-colors font-medium"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                  Get Testnet Boson
+                </a>
+          ) : (
+            <div /> 
+          )}
             </div>
           ) : !ready || (authenticated && !walletAddress) ? (
             <div className="flex items-center gap-3">
@@ -225,51 +190,6 @@ export default function TopBar() {
           )}
         </div>
       </header>
-
-      {/* Export Wallet Warning Modal */}
-      {showExportWarning && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowExportWarning(false)}
-          />
-          <div className="relative bg-surface border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6">
-            <button
-              onClick={() => setShowExportWarning(false)}
-              className="absolute top-4 right-4 text-foreground-muted hover:text-foreground transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <h2 className="text-2xl font-bold text-foreground">Export Wallet</h2>
-
-            <p className="text-foreground-muted text-sm">
-              Export your wallet&apos;s private key to use with other Solana wallets like Phantom or Solflare.
-            </p>
-
-            <div className="border-2 border-error rounded-lg p-4 space-y-2 bg-surface/30">
-              <h3 className="text-error font-semibold text-sm">Security Warning:</h3>
-              <p className="text-error text-sm">
-                Never share your private key with anyone. Store it securely and only use it in trusted wallets.
-              </p>
-            </div>
-
-            <button
-              onClick={async () => {
-                if (walletAddress) {
-                  await exportWallet({ address: walletAddress });
-                }
-                setShowExportWarning(false);
-              }}
-              className="w-full py-3 px-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg transition-colors"
-            >
-              Export Private Key
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

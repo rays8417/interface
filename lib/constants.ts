@@ -28,9 +28,9 @@ export const DECIMAL_MULTIPLIER = Math.pow(10, TOKEN_DECIMALS);
 export const BOSON_MINT = new PublicKey("HtnUp4FXaKC7MvpWP2N8W25rea75XspMiiw3XEixE8Jd");
 
 export const BOSON_TOKEN = {
-  name: "BOSON",
+  name: "Boson",
   mint: BOSON_MINT,
-  displayName: "BOSON",
+  displayName: "Boson",
   team: "Base",
   position: "Base" as const,
   avatar: "B",

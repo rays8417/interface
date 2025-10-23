@@ -77,7 +77,6 @@ export function useLiveScores(
       if (response.data && response.data.players) {
         setData(response.data);
         setIsPollingActive(response.data.pollingActive);
-        console.log(`✅ Live scores updated: ${response.data.totalEligiblePlayers} players`);
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || "Failed to fetch live scores";
@@ -101,8 +100,6 @@ export function useLiveScores(
         `${getApiUrl()}/api/live-scores/${tournamentId}/start-polling`,
         { intervalMinutes: pollingIntervalMinutes }
       );
-
-      console.log(`🔄 Started backend polling (every ${pollingIntervalMinutes} minutes)`);
       setIsPollingActive(true);
       
       // Fetch initial scores
@@ -125,7 +122,6 @@ export function useLiveScores(
         `${getApiUrl()}/api/live-scores/${tournamentId}/stop-polling`
       );
 
-      console.log("⏹️  Stopped backend polling");
       setIsPollingActive(false);
     } catch (err: any) {
       console.error("Stop polling error:", err);
@@ -141,7 +137,6 @@ export function useLiveScores(
     
     setData(response.data);
     setIsPollingActive(response.data.pollingActive);
-    console.log("🚀 Live updates started");
   }, [tournamentId, pollingIntervalMinutes]);
 
 
