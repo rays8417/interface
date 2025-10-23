@@ -30,7 +30,7 @@ export default function MyTeamsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-6 pt-6 pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
             <p className="text-foreground-muted text-sm">
@@ -46,7 +46,7 @@ export default function MyTeamsPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-6 pt-6 pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
             <p className="text-foreground-muted text-sm">
@@ -61,7 +61,7 @@ export default function MyTeamsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-7xl px-6 pt-6 pb-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Rewards & Player Holdings</h1>
           <p className="text-foreground-muted text-sm">

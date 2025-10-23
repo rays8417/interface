@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
+import TopBar from "../components/TopBar";
+import ContentWrapper from "../components/ContentWrapper";
 import PrivyProviderWrapper from "../contexts/PrivyProvider";
 import ClientWrapper from "../components/ClientWrapper";
 import { Toaster } from "react-hot-toast";
@@ -36,10 +38,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased scrollbar-thin`}
       >
         <PrivyProviderWrapper>
-          <Navbar />
-          <ClientWrapper>
-            <main className="min-h-[calc(100vh-64px)]">{children}</main>
-          </ClientWrapper>
+          <Sidebar />
+          <TopBar />
+          <ContentWrapper>
+            <ClientWrapper>
+              {children}
+            </ClientWrapper>
+          </ContentWrapper>
           <Toaster 
             position="bottom-right"
             containerStyle={{

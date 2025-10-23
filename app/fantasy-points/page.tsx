@@ -2,7 +2,7 @@
 
 export default function FantasyPointsPage() {
   return (
-    <div className="min-h-screen bg-background p-6 md:p-12">
+    <div className="min-h-screen bg-background px-6 pt-6 pb-6 md:px-12 md:pt-8 md:pb-12">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">

@@ -168,7 +168,7 @@ function SwapsPageContent() {
   if (loadingPairs || !tokens) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 pb-6 sm:pt-8 sm:pb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Token Swap</h1>
@@ -332,7 +332,7 @@ export default function SwapsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 pb-6 sm:pt-8 sm:pb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Token Swap</h1>
