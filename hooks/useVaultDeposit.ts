@@ -172,7 +172,7 @@ export function useVaultDeposit() {
           "confirmed"
         );
 
-        toast.success(`Pack opened successfully! Deposited ${amount} BOSON 🎉`);
+        toast.success(`Purchase successfull! Deposited ${amount} BOSON 🎉`);
         triggerRefresh(); // Refresh token balances after successful deposit
         return { success: true };
       } catch (confirmError: any) {
@@ -182,7 +182,7 @@ export function useVaultDeposit() {
           maxSupportedTransactionVersion: 0,
         });
         if (tx && !tx.meta?.err) {
-          toast.success(`Pack opened successfully! Deposited ${amount} BOSON 🎉`);
+          toast.success(`Purchase successful! Deposited ${amount} BOSON 🎉`);
           triggerRefresh(); // Refresh token balances after successful deposit
           return { success: true };
         } else {
