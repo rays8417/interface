@@ -90,13 +90,10 @@ export default function HoldingsOpenPacksModal({ isOpen, onClose, pack, onPackOp
       console.error('No pack to open');
       return;
     }
-    
-    console.log('Opening pack:', pack.id, pack);
+  
     const result = await openPack(pack.id);
-    console.log('Pack open result:', result);
     
     if (result.success && result.data) {
-      console.log('Pack opened successfully! Players:', result.data.players);
       setPackPlayers(result.data.players);
       setWasPackOpened(true); // Mark that pack was opened
       
@@ -104,9 +101,7 @@ export default function HoldingsOpenPacksModal({ isOpen, onClose, pack, onPackOp
       triggerRefresh();
       
       // Trigger flip animation after a short delay
-      console.log('Starting flip animation in 1 second...');
       setTimeout(() => {
-        console.log('Flipping now!');
         setIsFlipped(true);
         setShowPreview(false); // Hide preview side after flip starts
       }, 1000);

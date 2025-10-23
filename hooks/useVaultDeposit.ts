@@ -42,7 +42,7 @@ export function useVaultDeposit() {
 
     if (userBalance < amount) {
       toast.error(
-        `Insufficient BOSON balance. You have ${userBalance.toFixed(4)} but are trying to deposit ${amount}`
+        `Insufficient BOSON balance. You have ${userBalance.toFixed(4)} but need ${amount}`
       );
       return { success: false };
     }

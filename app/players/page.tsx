@@ -39,7 +39,7 @@ export default function PlayersPage() {
   } | null>(null);
 
   const { account } = useWallet();
-  const { availableTokens } = useLiquidityPairs();
+  const { availableTokens, loading: tokensLoading } = useLiquidityPairs();
   const { balances, loading: balancesLoading, refetch: refetchBalances } = useTokenBalances(account?.address, availableTokens);
   const { executeDeposit } = useVaultDeposit();
   const { getLatestUnopenedPack } = usePackOpening();
@@ -51,23 +51,16 @@ export default function PlayersPage() {
       console.error("No account connected");
       return;
     }
-
     
     const packKey = packType.toLowerCase();
     setLoadingPacks(prev => ({ ...prev, [packKey]: true }));
 
     try {
-      // If balances are loading or boson balance is not yet fetched, refetch to ensure we have the latest balance
-      let bosonBalance = balances.boson;
+      // Get current balance, default to 0 if not loaded yet
+      const bosonBalance = balances.boson ?? 0;
       
-      if (balancesLoading || bosonBalance === undefined) {
-        // Fetching latest balances before opening pack...
-        const freshBalances = await refetchBalances();
-        bosonBalance = freshBalances?.boson ?? 0;
-      }
-      
-      // First execute the deposit transaction with the fetched balance
-      const depositResult = await executeDeposit(account, amount, bosonBalance ?? 0);
+      // Execute the deposit transaction
+      const depositResult = await executeDeposit(account, amount, bosonBalance);
       
       if (depositResult.success) {
         // Show modal immediately with loading state
@@ -182,10 +175,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("base", 20)}
-                disabled={loadingPacks.base || !account}
+                disabled={loadingPacks.base || !account || tokensLoading || balancesLoading || availableTokens.length === 0}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.base ? "Opening..." : "Open Pack"}
+                {loadingPacks.base ? "Opening..." : tokensLoading || balancesLoading ? "Loading..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -220,10 +213,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("prime", 50)}
-                disabled={loadingPacks.prime || !account}
+                disabled={loadingPacks.prime || !account || tokensLoading || balancesLoading || availableTokens.length === 0}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.prime ? "Opening..." : "Open Pack"}
+                {loadingPacks.prime ? "Opening..." : tokensLoading || balancesLoading ? "Loading..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -258,10 +251,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("ultra", 100)}
-                disabled={loadingPacks.ultra || !account}
+                disabled={loadingPacks.ultra || !account || tokensLoading || balancesLoading || availableTokens.length === 0}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.ultra ? "Opening..." : "Open Pack"}
+                {loadingPacks.ultra ? "Opening..." : tokensLoading || balancesLoading ? "Loading..." : "Open Pack"}
               </button>
             </div>
           </div>
