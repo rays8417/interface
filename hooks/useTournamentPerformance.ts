@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { getApiUrl } from "@/lib/constants";
+import { useTournamentDataContext } from "@/contexts/TournamentDataContext";
 
 interface PlayerScore {
   id: string;
@@ -24,9 +25,19 @@ interface PlayerScore {
 export function useTournamentPerformance(tournamentId?: string) {
   const [playerScores, setPlayerScores] = useState<PlayerScore[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  const { getPerformanceCache, setPerformanceCache } = useTournamentDataContext();
 
   useEffect(() => {
     if (!tournamentId) {
+      setLoading(false);
+      return;
+    }
+
+    // Check cache first
+    const cached = getPerformanceCache(tournamentId);
+    if (cached) {
+      setPlayerScores(cached.playerScores);
       setLoading(false);
       return;
     }
@@ -37,7 +48,10 @@ export function useTournamentPerformance(tournamentId?: string) {
         const response = await axios.get(
           `${getApiUrl()}/api/tournaments/${tournamentId}`
         );
-        setPlayerScores(response.data.tournament.playerScores || []);
+        const scores = response.data.tournament.playerScores || [];
+        setPlayerScores(scores);
+        // Cache the fetched data
+        setPerformanceCache(tournamentId, scores);
       } catch (error) {
         console.error("Error fetching tournament performance:", error);
         setPlayerScores([]);
@@ -47,7 +61,7 @@ export function useTournamentPerformance(tournamentId?: string) {
     };
 
     fetchPerformance();
-  }, [tournamentId]);
+  }, [tournamentId, getPerformanceCache, setPerformanceCache]);
 
   return { playerScores, loading };
 }

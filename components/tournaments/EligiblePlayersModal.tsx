@@ -204,7 +204,7 @@ export default function EligiblePlayersModal({
                     <div className="text-center">
                       
                       <p className="text-sm text-orange-400">
-                        Final playing players are decided after the toss. Players listed here are eligible but may not all participate in the actual match.
+                      The final playing players are determined after the toss. The players listed here are eligible but may not all participate in the actual match.
                       </p>
                     </div>
                   </div>

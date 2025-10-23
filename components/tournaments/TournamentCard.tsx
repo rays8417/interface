@@ -16,9 +16,10 @@ interface Tournament {
 interface TournamentCardProps {
   tournament: Tournament;
   onClick?: () => void;
+  onHover?: () => void;
 }
 
-export default function TournamentCard({ tournament, onClick }: TournamentCardProps) {
+export default function TournamentCard({ tournament, onClick, onHover }: TournamentCardProps) {
   const matchDate = new Date(tournament.matchDate);
   const dateStr = matchDate.toLocaleDateString("en-US", {
     month: "short",
@@ -40,6 +41,7 @@ export default function TournamentCard({ tournament, onClick }: TournamentCardPr
           : ''
       }`}
       onClick={onClick}
+      onMouseEnter={onHover}
     >
       {/* Teams */}
       <div className="flex items-center justify-between gap-3">
