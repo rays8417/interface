@@ -199,15 +199,17 @@ export default function EligiblePlayersModal({
                     )}
                   </div>
 
-                  {/* Warning about final playing players */}
-                  <div className=" border border-orange-500 rounded-lg p-4">
-                    <div className="text-center">
-                      
-                      <p className="text-sm text-orange-400">
-                      The final playing players are determined after the toss. The players listed here are eligible but may not all participate in the actual match.
-                      </p>
+                  {/* Warning about final playing players - only show for upcoming tournaments */}
+                  {tournament?.status === "UPCOMING" && (
+                    <div className=" border border-orange-500 rounded-lg p-4">
+                      <div className="text-center">
+                        
+                        <p className="text-sm text-orange-400">
+                        The final playing players are determined after the toss. The players listed here are eligible but may not all participate in the actual match.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <SearchBar
                     value={query}
