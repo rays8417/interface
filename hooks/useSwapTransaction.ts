@@ -45,7 +45,7 @@ export function useSwapTransaction() {
 
     if (fromBalance < Number(payAmount)) {
       toast.error(
-        `Insufficient ${fromTokenName} balance. You have ${fromBalance.toFixed(4)} but are trying to swap ${payAmount}`
+        `Insufficient ${fromTokenName} balance. You have ${fromBalance.toFixed(4)} but need ${payAmount}`
       );
       return { success: false };
     }
