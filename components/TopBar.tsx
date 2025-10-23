@@ -6,6 +6,7 @@ import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useState, useEffect } from "react";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function TopBar() {
   const pathname = usePathname();
@@ -112,9 +113,11 @@ export default function TopBar() {
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-surface/80 backdrop-blur supports-[backdrop-filter]:bg-surface/60">
-        <div className="h-16 flex items-center justify-end px-6 md:ml-64">
-          {authenticated && walletAddress ? (
-            <div className="flex items-center gap-3">
+        <div className="h-16 flex items-center justify-between px-6">
+          <SidebarTrigger className="md:hidden" />
+          <div className="flex-1 flex justify-end">
+            {authenticated && walletAddress ? (
+              <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
                 <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                   B
@@ -155,39 +158,40 @@ export default function TopBar() {
               ) : (
                 <div /> 
               )}
-            </div>
-          ) : !ready || (authenticated && !walletAddress) ? (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
-                <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                  B
-                </div>
-                <span className="font-medium">
-                  <div className="h-4 w-8 bg-gray-300 rounded animate-pulse"></div>
-                </span>
               </div>
-              <div className="relative">
-                <div className="px-1 py-2 bg-muted text-foreground text-sm font-mono rounded-md border border-border">
-                  <div className="h-4 w-[7.5rem] bg-gray-300 rounded animate-pulse"></div>
+            ) : !ready || (authenticated && !walletAddress) ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    B
+                  </div>
+                  <span className="font-medium">
+                    <div className="h-4 w-8 bg-gray-300 rounded animate-pulse"></div>
+                  </span>
+                </div>
+                <div className="relative">
+                  <div className="px-1 py-2 bg-muted text-foreground text-sm font-mono rounded-md border border-border">
+                    <div className="h-4 w-[7.5rem] bg-gray-300 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="relative">
+                  <div className="flex items-center gap-2 px-1 py-2 text-sm rounded-md border border-border bg-muted">
+                    <div className="h-4 w-[10rem] bg-gray-300 rounded animate-pulse"></div>
+                    <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
-              <div className="relative">
-                <div className="flex items-center gap-2 px-1 py-2 text-sm rounded-md border border-border bg-muted">
-                  <div className="h-4 w-[10rem] bg-gray-300 rounded animate-pulse"></div>
-                  <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={handleConnect}
-              className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              Connect Wallet
-            </button>
-          )}
+            ) : (
+              <button
+                onClick={handleConnect}
+                className="inline-flex items-center justify-center rounded-md border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                Connect Wallet
+              </button>
+            )}
+          </div>
         </div>
       </header>
     </>

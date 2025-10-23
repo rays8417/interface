@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { getApiUrl } from "@/lib/constants";
 import { useLiveScores } from "./useLiveScores";
@@ -47,7 +47,7 @@ export function useTournamentPlayers(
 ) {
   const [players, setPlayers] = useState<TournamentPlayerData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const initialLoadDoneRef = useRef(false);
   
   const { getPlayersCache, setPlayersCache } = useTournamentDataContext();
 
@@ -65,6 +65,7 @@ export function useTournamentPlayers(
     if (!tournamentId || !tournamentStatus) {
       setPlayers([]);
       setLoading(false);
+      initialLoadDoneRef.current = false;
       return;
     }
 
@@ -72,12 +73,13 @@ export function useTournamentPlayers(
     if (tournamentStatus === "COMPLETED") {
       setPlayers([]);
       setLoading(false);
+      initialLoadDoneRef.current = false;
       return;
     }
 
     // For ONGOING tournaments, set up player structure once
     if (tournamentStatus === "ONGOING") {
-      if (liveScores.players && liveScores.players.length > 0 && !initialLoadDone) {
+      if (liveScores.players && liveScores.players.length > 0 && !initialLoadDoneRef.current) {
         // Initial load: Create player structure
         setPlayers(
           liveScores.players.map((player) => ({
@@ -89,9 +91,9 @@ export function useTournamentPlayers(
             fantasyPoints: player.fantasyPoints.toString(),
           }))
         );
-        setInitialLoadDone(true);
+        initialLoadDoneRef.current = true;
       }
-      setLoading(liveScores.loading && !initialLoadDone);
+      setLoading(liveScores.loading && !initialLoadDoneRef.current);
       return;
     }
 
@@ -136,12 +138,11 @@ export function useTournamentPlayers(
     };
 
     fetchPlayers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tournamentId, tournamentStatus, walletAddress, liveScores.players, initialLoadDone]);
+  }, [tournamentId, tournamentStatus, walletAddress, getPlayersCache, setPlayersCache]);
 
   // Update only fantasy points when live scores change (smooth updates)
   useEffect(() => {
-    if (tournamentStatus !== "ONGOING" || !initialLoadDone) return;
+    if (tournamentStatus !== "ONGOING" || !initialLoadDoneRef.current) return;
     if (!liveScores.players || liveScores.players.length === 0) return;
     
     // Only update fantasy points, don't recreate entire player objects
@@ -164,7 +165,7 @@ export function useTournamentPlayers(
         return player;
       });
     });
-  }, [liveScores.players, tournamentStatus, initialLoadDone]);
+  }, [liveScores.players, tournamentStatus]);
 
   return { 
     players, 
