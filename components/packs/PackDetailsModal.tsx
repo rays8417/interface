@@ -119,7 +119,13 @@ export default function PackDetailsModal({ isOpen, onClose, pack }: PackDetailsM
               {/* Pack Icon */}
               <div className={`mx-auto w-16 h-16 rounded-full bg-gradient-to-br ${getPackGradient(pack.packType)} flex items-center justify-center`}>
                 <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                  {pack.packType.toLowerCase() === 'base' ? (
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                  ) : pack.packType.toLowerCase() === 'prime' ? (
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                  ) : (
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  )}
                 </svg>
               </div>
               

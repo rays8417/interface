@@ -50,9 +50,12 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
               <p className="text-foreground-muted text-sm">Get started with Tenjaku Fantasy Cricket</p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+            <div className="space-y-4 relative">
+              {/* Connecting line */}
+              <div className="absolute left-4 top-8 bottom-8 w-px bg-primary/10" />
+              
+              <div className="flex gap-4 relative">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface border border-primary/30 flex items-center justify-center text-primary font-semibold relative z-10">
                   1
                 </div>
                 <div>
@@ -61,8 +64,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+              <div className="flex gap-4 relative">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface border border-primary/30 flex items-center justify-center text-primary font-semibold relative z-10">
                   2
                 </div>
                 <div>
@@ -71,8 +74,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+              <div className="flex gap-4 relative">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface border border-primary/30 flex items-center justify-center text-primary font-semibold relative z-10">
                   3
                 </div>
                 <div>
@@ -81,8 +84,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+              <div className="flex gap-4 relative">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface border border-primary/30 flex items-center justify-center text-primary font-semibold relative z-10">
                   4
                 </div>
                 <div>
@@ -91,8 +94,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+              <div className="flex gap-4 relative">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface border border-primary/30 flex items-center justify-center text-primary font-semibold relative z-10">
                   5
                 </div>
                 <div>
@@ -101,8 +104,8 @@ export default function HowToPlayModal({ isOpen, onClose }: HowToPlayModalProps)
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+              <div className="flex gap-4 relative">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface border border-primary/30 flex items-center justify-center text-primary font-semibold relative z-10">
                   6
                 </div>
                 <div>

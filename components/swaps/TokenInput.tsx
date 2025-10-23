@@ -270,14 +270,13 @@ export default function TokenInput({
                 {availableTokens.find((t) => t.name === selectedPlayerToken)?.position}
               </div>
             </div>
-          ) : token.name === "BOSON" ? (
+          ) : token.name === "Boson" ? (
             <>
               <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg">
                 <span className="font-bold text-lg">B</span>
               </div>
               <div className="text-left">
-                <div className="font-bold text-foreground text-lg leading-tight">BOSON</div>
-                {/* <div className="text-xs text-foreground-subtle font-medium">Base Token</div> */}
+                <div className="font-bold text-foreground text-lg leading-tight">Boson</div>
               </div>
             </>
           ) : (

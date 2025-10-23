@@ -143,7 +143,18 @@ export default function TopBar() {
                   </div>
                 )}
               </div>
-              
+              {authenticated && walletAddress ? (
+                <a 
+                  href="https://boson-faucet.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium bg-muted text-primary hover:bg-surface-elevated rounded-lg transition-colors border border-border hover:border-primary/50"
+                >
+                  Get Testnet Boson
+                </a>
+          ) : (
+            <div /> 
+          )}
             </div>
           ) : !ready || (authenticated && !walletAddress) ? (
             <div className="flex items-center gap-3">

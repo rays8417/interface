@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 interface PackPlayer {
   amount: number;
   player: string;
@@ -30,8 +28,6 @@ interface PackCardProps {
 }
 
 export default function PackCard({ pack, onOpenPack, onViewDetails, onSeePack, isLoading }: PackCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   const getPackGradient = (packType: string) => {
     switch (packType.toLowerCase()) {
       case 'base':
@@ -66,24 +62,36 @@ export default function PackCard({ pack, onOpenPack, onViewDetails, onSeePack, i
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  const getPackBorderHover = (packType: string) => {
+    switch (packType.toLowerCase()) {
+      case 'base':
+        return 'hover:border-slate-500/50';
+      case 'prime':
+        return 'hover:border-purple-500/50';
+      case 'ultra':
+        return 'hover:border-amber-500/50';
+      default:
+        return 'hover:border-primary/50';
+    }
+  };
+
+  const getSharesInfo = (packType: string) => {
+    switch (packType.toLowerCase()) {
+      case 'base':
+        return 'Contains 150-700 Shares Per Player';
+      case 'prime':
+        return 'Contains 350-1,800 Shares Per Player';
+      case 'ultra':
+        return 'Contains 750-3,500 Shares Per Player';
+      default:
+        return 'Contains player shares';
+    }
   };
 
   return (
-    <div 
-      className={`group border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 transition-all duration-300 hover:shadow-xl ${
-        isHovered ? 'scale-[1.02]' : ''
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`group border border-border rounded-xl overflow-hidden bg-card ${getPackBorderHover(pack.packType)} transition-all duration-300 hover:shadow-xl`}>
       {/* Pack Header */}
-      <div className={`relative h-32 bg-gradient-to-br ${getPackGradient(pack.packType)} flex items-center justify-center overflow-hidden`}>
+      <div className={`relative h-56 bg-gradient-to-br ${getPackGradient(pack.packType)} flex items-center justify-center overflow-hidden`}>
         <div className="absolute top-3 right-3">
           <span className="px-2.5 py-1 bg-black/30 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/20">
             {pack.packType.toUpperCase()}
@@ -92,92 +100,54 @@ export default function PackCard({ pack, onOpenPack, onViewDetails, onSeePack, i
         
         {/* Pack Icon */}
         <svg 
-          className={`w-16 h-16 text-white/90 transition-transform duration-300 ${
-            pack.packType.toLowerCase() === 'ultra' ? 'group-hover:rotate-12' : 'group-hover:scale-110'
+          className={`w-28 h-28 text-white/90 group-hover:scale-110 transition-transform duration-300 ${
+            pack.packType.toLowerCase() === 'ultra' ? 'group-hover:rotate-12' : ''
           }`} 
           fill="currentColor" 
           viewBox="0 0 24 24"
         >
           {getPackIcon(pack.packType)}
         </svg>
-
-        {/* Status Badge */}
-        <div className="absolute bottom-3 left-3">
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-            pack.isOpened 
-              ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-              : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-          }`}>
-            {pack.isOpened ? 'Opened' : 'Unopened'}
-          </span>
-        </div>
       </div>
 
       {/* Pack Content */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-bold text-foreground">{pack.packType}</h3>
-          <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-lg">
-            <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-2xl font-bold text-foreground">{pack.packType}</h3>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
+            <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
               B
             </div>
-            <span className="text-sm font-bold text-foreground">{parseFloat(pack.totalValue).toFixed(2)}</span>
+            <span className="text-lg font-bold text-foreground">{parseFloat(pack.totalValue).toFixed(0)}</span>
           </div>
         </div>
 
-        {/* Pack Info */}
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-foreground-muted">Purchased:</span>
-            <span className="text-foreground">{formatDate(pack.createdAt)}</span>
-          </div>
-          
-          {pack.isOpened && pack.players && (
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-foreground-muted">Players:</span>
-              <span className="text-foreground">{pack.players.length}</span>
-            </div>
-          )}
+        {/* Shares Info */}
+        <div className="flex items-center gap-2 mb-4">
+          <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span className="text-sm text-foreground-muted font-medium">{getSharesInfo(pack.packType)}</span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-2">
-          {pack.isOpened ? (
-            <button
-              onClick={() => onViewDetails?.(pack)}
-              className="w-full py-2 px-3 bg-primary/10 hover:bg-primary/20 text-primary font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                className="h-4 w-4"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              View Players
-            </button>
-          ) : (
-            <button
-              onClick={() => onSeePack?.(pack)}
-              className="w-full py-2 px-3 bg-primary/10 hover:bg-primary/20 text-primary font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                className="h-4 w-4"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              See Pack
-            </button>
-          )}
-        </div>
+        {/* Action Button */}
+        {pack.isOpened ? (
+          <button
+            onClick={() => onViewDetails?.(pack)}
+            disabled={isLoading}
+            className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            View Players
+          </button>
+        ) : (
+          <button
+            onClick={() => onSeePack?.(pack)}
+            disabled={isLoading}
+            className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Open Pack
+          </button>
+        )}
       </div>
     </div>
   );

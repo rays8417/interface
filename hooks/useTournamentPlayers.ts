@@ -76,7 +76,6 @@ export function useTournamentPlayers(
     if (tournamentStatus === "ONGOING") {
       if (liveScores.players && liveScores.players.length > 0 && !initialLoadDone) {
         // Initial load: Create player structure
-        console.log(`📊 Initial load: ${liveScores.players.length} players`);
         setPlayers(
           liveScores.players.map((player) => ({
             id: player.moduleName,
@@ -131,8 +130,6 @@ export function useTournamentPlayers(
   useEffect(() => {
     if (tournamentStatus !== "ONGOING" || !initialLoadDone) return;
     if (!liveScores.players || liveScores.players.length === 0) return;
-
-    console.log(`🔄 Updating scores for ${liveScores.players.length} players`);
     
     // Only update fantasy points, don't recreate entire player objects
     setPlayers((currentPlayers) => {

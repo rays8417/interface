@@ -172,7 +172,7 @@ export default function Sidebar() {
                     className="w-full px-4 py-3 text-sm text-left text-foreground hover:bg-surface transition-colors font-medium flex items-center gap-3 border-b border-border"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                     Export Wallet
                   </button>
@@ -182,7 +182,7 @@ export default function Sidebar() {
                     handleDisconnect();
                     setShowLogout(false);
                   }}
-                  className="w-full px-4 py-3 text-sm text-left text-foreground hover:bg-surface transition-colors font-medium flex items-center gap-3"
+                  className="w-full px-4 py-3 text-sm text-left text-red-500 hover:text-red-600 hover:bg-surface transition-colors font-medium flex items-center gap-3"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

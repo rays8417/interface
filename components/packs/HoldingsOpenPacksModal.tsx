@@ -29,13 +29,15 @@ interface PackPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   pack: UserPack | null;
+  onPackOpened?: () => void;
 }
 
-export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewModalProps) {
+export default function HoldingsOpenPacksModal({ isOpen, onClose, pack, onPackOpened }: PackPreviewModalProps) {
   const [mounted, setMounted] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [packPlayers, setPackPlayers] = useState<PackPlayer[]>([]);
   const [showPreview, setShowPreview] = useState(true); // Controls front/back of the modal
+  const [wasPackOpened, setWasPackOpened] = useState(false); // Track if pack was opened in this session
   
   const { loading, error, openPack } = usePackOpening();
   const { triggerRefresh } = useBalanceRefresh();
@@ -71,25 +73,45 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
       setIsFlipped(false);
       setPackPlayers([]);
       setShowPreview(true);
+      setWasPackOpened(false);
     }
   }, [isOpen]);
 
+  // Unified close handler that triggers refresh if pack was opened
+  const handleClose = () => {
+    if (wasPackOpened) {
+      onPackOpened?.();
+    }
+    onClose();
+  };
+
   const handleOpenPack = async () => {
-    if (!pack) return;
+    if (!pack) {
+      console.error('No pack to open');
+      return;
+    }
     
+    console.log('Opening pack:', pack.id, pack);
     const result = await openPack(pack.id);
+    console.log('Pack open result:', result);
     
     if (result.success && result.data) {
+      console.log('Pack opened successfully! Players:', result.data.players);
       setPackPlayers(result.data.players);
+      setWasPackOpened(true); // Mark that pack was opened
       
       // Refresh token balances after successful pack opening
       triggerRefresh();
       
       // Trigger flip animation after a short delay
+      console.log('Starting flip animation in 1 second...');
       setTimeout(() => {
+        console.log('Flipping now!');
         setIsFlipped(true);
         setShowPreview(false); // Hide preview side after flip starts
       }, 1000);
+    } else {
+      console.error('Pack opening failed:', result.error);
     }
   };
 
@@ -133,11 +155,11 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
   const modalContent = isOpen && mounted ? createPortal(
     <div 
       className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
-      onClick={onClose}
+      onClick={handleClose}
     >
-      <div className="perspective-1000 w-full max-w-md my-8">
+      <div className="perspective-1000 w-full max-w-2xl my-8">
         <div 
-          className={`relative w-full min-h-[600px] transition-all duration-700 transform-style-preserve-3d ${
+          className={`relative w-full min-h-[500px] transition-all duration-700 transform-style-preserve-3d ${
             isFlipped ? 'rotate-y-180' : ''
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -146,7 +168,7 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
           <div className={`absolute inset-0 w-full backface-hidden bg-surface border border-border rounded-2xl shadow-2xl p-6 md:p-8 ${!showPreview ? 'pointer-events-none' : ''}`}>
             {/* Close button */}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 text-foreground-muted hover:text-foreground transition-colors z-10"
               aria-label="Close"
             >
@@ -168,9 +190,6 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
                   {pack.packType} Pack
                 </h2>
-                <p className="text-foreground-muted text-base">
-                  Ready to discover your players?
-                </p>
               </div>
 
               {/* Pack Visual */}
@@ -206,9 +225,9 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
                           viewBox="0 0 24 24"
                         >
                           {pack.packType.toLowerCase() === 'base' ? (
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
                           ) : pack.packType.toLowerCase() === 'prime' ? (
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                           ) : pack.packType.toLowerCase() === 'ultra' ? (
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                           ) : (
@@ -220,13 +239,16 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
                   </div>
 
                   {/* Pack Footer */}
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold text-xs">B</span>
+                  <div className="absolute bottom-4 left-4 right-4 space-y-2">
+                    <div className="bg-white/15 backdrop-blur-md rounded-xl px-4 py-3 border border-white/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/80 text-xs font-medium">Pack Value</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">B</span>
+                          </div>
+                          <span className="text-white font-bold text-lg">{parseFloat(pack.totalValue).toFixed(0)}</span>
                         </div>
-                        <span className="text-white font-bold">{parseFloat(pack.totalValue).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -235,8 +257,6 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse"></div>
                 </div>
               </div>
-
-            
 
               {/* Open Pack Button */}
               <div className="relative pt-2">
@@ -256,19 +276,19 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
                         fill="currentColor"
-                        className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300"
+                        className={`h-5 w-5 transition-transform duration-300 ${
+                          pack.packType.toLowerCase() === 'ultra' ? 'group-hover:rotate-12' : 'group-hover:scale-110'
+                        }`}
                       >
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        {pack.packType.toLowerCase() === 'base' ? (
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        ) : pack.packType.toLowerCase() === 'prime' ? (
+                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        ) : (
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        )}
                       </svg>
                       <span>Open Pack</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="h-5 w-5 group-hover:-rotate-12 transition-transform duration-300"
-                      >
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                      </svg>
                     </>
                   )}
                 </button>
@@ -282,15 +302,18 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
               <div className="text-center pt-2">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 border border-primary/20 rounded-full mb-4">
                   <svg className="w-8 h-8 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    {pack.packType.toLowerCase() === 'base' ? (
+                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    ) : pack.packType.toLowerCase() === 'prime' ? (
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    ) : (
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    )}
                   </svg>
                 </div>
-                <h2 className="text-3xl font-bold text-foreground mb-2">
+                <h2 className="text-3xl font-bold text-foreground">
                   Pack Opened!
                 </h2>
-                <p className="text-foreground-muted text-base">
-                  Here are your players
-                </p>
               </div>
 
               {/* Loading State */}
@@ -362,7 +385,7 @@ export default function PackPreviewModal({ isOpen, onClose, pack }: PackPreviewM
 
               {/* Close Button */}
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="w-full py-3 px-6 bg-surface-elevated hover:bg-surface border border-border hover:border-border-strong text-foreground font-semibold rounded-xl transition-all duration-200 mt-2"
               >
                 Close
