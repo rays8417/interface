@@ -1,7 +1,6 @@
-// src/providers/PrivyProviderWrapper.tsx
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode} from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
 
@@ -11,11 +10,15 @@ export default function PrivyProviderWrapper({
 }: {
   children: ReactNode;
 }) {
+
+  if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
+    throw new Error("NEXT_PUBLIC_PRIVY_APP_ID is not set");
+  }
   return (
     <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
       config={{
-        loginMethods: ["email"],
+        loginMethods: ["twitter"],
         embeddedWallets: {
             solana: {
               createOnLogin: "users-without-wallets"
@@ -33,7 +36,7 @@ export default function PrivyProviderWrapper({
           theme: "dark",
           accentColor: "#3b82f6",
           logo: "/tenjakulogo-white-nobg.png",
-          walletChainType: "solana-only", // or "ethereum-and-solana" if you also support EVM
+          walletChainType: "solana-only",
         },
       }}
     >
