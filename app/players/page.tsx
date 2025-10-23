@@ -175,10 +175,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("base", 20)}
-                disabled={loadingPacks.base || !account || tokensLoading || balancesLoading || availableTokens.length === 0}
+                disabled={loadingPacks.base || !account || (tokensLoading && availableTokens.length === 0) || (balancesLoading && !balances.boson && balances.boson !== 0)}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.base ? "Opening..." : tokensLoading || balancesLoading ? "Loading..." : "Open Pack"}
+                {loadingPacks.base ? "Opening..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -213,10 +213,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("prime", 50)}
-                disabled={loadingPacks.prime || !account || tokensLoading || balancesLoading || availableTokens.length === 0}
+                disabled={loadingPacks.prime || !account || (tokensLoading && availableTokens.length === 0) || (balancesLoading && !balances.boson && balances.boson !== 0)}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.prime ? "Opening..." : tokensLoading || balancesLoading ? "Loading..." : "Open Pack"}
+                {loadingPacks.prime ? "Opening..." : "Open Pack"}
               </button>
             </div>
           </div>
@@ -251,10 +251,10 @@ export default function PlayersPage() {
               </div>
               <button 
                 onClick={() => handlePackOpen("ultra", 100)}
-                disabled={loadingPacks.ultra || !account || tokensLoading || balancesLoading || availableTokens.length === 0}
+                disabled={loadingPacks.ultra || !account || (tokensLoading && availableTokens.length === 0) || (balancesLoading && !balances.boson && balances.boson !== 0)}
                 className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingPacks.ultra ? "Opening..." : tokensLoading || balancesLoading ? "Loading..." : "Open Pack"}
+                {loadingPacks.ultra ? "Opening..." : "Open Pack"}
               </button>
             </div>
           </div>
