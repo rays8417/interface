@@ -182,7 +182,7 @@ function SwapsPageContent() {
                 <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
                 <div className="text-left">
                   <a 
-                    href="https://boson-faucet.vercel.app/" 
+                    href={`https://boson-faucet.vercel.app/?address=${account?.address || ''}`}  
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="text-sm font-medium text-foreground hover:text-primary transition-colors"
@@ -260,7 +260,7 @@ function SwapsPageContent() {
               <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
               <div className="text-left">
                 <a 
-                  href="https://boson-faucet.vercel.app/" 
+                  href={`https://boson-faucet.vercel.app/?address=${account?.address || ''}`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-sm font-medium text-foreground hover:text-primary transition-colors"
