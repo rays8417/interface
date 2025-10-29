@@ -49,6 +49,7 @@ export default function RootLayout({
                 <ContentWrapper>
                   <ClientWrapper>
                     {children}
+                    <Analytics />
                   </ClientWrapper>
                 </ContentWrapper>
               </SidebarInset>
