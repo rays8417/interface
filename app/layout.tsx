@@ -9,6 +9,7 @@ import ClientWrapper from "../components/ClientWrapper";
 import { Toaster } from "react-hot-toast";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

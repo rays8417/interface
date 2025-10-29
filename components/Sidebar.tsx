@@ -27,7 +27,7 @@ export default function Sidebar() {
   const { exportWallet } = useExportWallet();
 
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [showLogout, setShowLogout] = useState(false);
+  const [showWalletDropdown, setShowWalletDropdown] = useState(false);
   const [showExportWarning, setShowExportWarning] = useState(false);
 
   useEffect(() => {
@@ -38,6 +38,11 @@ export default function Sidebar() {
     setWalletAddress(wallets[0].address);
   }, [ready, wallets]);
 
+  // Close dropdown when navigating to a new page
+  useEffect(() => {
+    setShowWalletDropdown(false);
+  }, [pathname]);
+
   // Check if user has an embedded wallet
   const userAny = user as any;
   const hasEmbeddedWallet = 
@@ -46,18 +51,18 @@ export default function Sidebar() {
 
   // Close dropdown on Escape key or click outside
   useEffect(() => {
-    if (!showLogout) return;
+    if (!showWalletDropdown) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setShowLogout(false);
+        setShowWalletDropdown(false);
       }
     };
     
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest('[data-dropdown-container]')) {
-        setShowLogout(false);
+        setShowWalletDropdown(false);
       }
     };
     
@@ -71,7 +76,7 @@ export default function Sidebar() {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [showLogout]);
+  }, [showWalletDropdown]);
 
   const handleDisconnect = async () => {
     try {
@@ -161,7 +166,7 @@ export default function Sidebar() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowLogout(!showLogout);
+                setShowWalletDropdown(!showWalletDropdown);
               }}
               className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-md border border-border text-foreground bg-muted hover:bg-surface-elevated transition-colors"
             >
@@ -177,7 +182,7 @@ export default function Sidebar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
             </button>
-            {showLogout && (
+            {showWalletDropdown && (
               <div 
                 className="absolute bottom-full mb-2 left-0 right-0 z-[101] bg-surface-elevated border border-border rounded-lg shadow-xl overflow-hidden"
               >
@@ -205,7 +210,7 @@ export default function Sidebar() {
                   <button
                     onClick={() => {
                       setShowExportWarning(true);
-                      setShowLogout(false);
+                      setShowWalletDropdown(false);
                     }}
                     className="w-full px-4 py-3 text-sm text-left text-foreground hover:bg-surface transition-colors font-medium flex items-center gap-3 border-b border-border"
                   >
@@ -218,7 +223,7 @@ export default function Sidebar() {
                 <button
                   onClick={() => {
                     handleDisconnect();
-                    setShowLogout(false);
+                    setShowWalletDropdown(false);
                   }}
                   className="w-full px-4 py-3 text-sm text-left text-red-500 hover:text-red-600 hover:bg-surface transition-colors font-medium flex items-center gap-3"
                 >
