@@ -1,7 +1,6 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";  // or maybe just '@privy-io/react-auth' depending on version
 import { useState, useEffect, useRef } from "react";
-import { getApiUrl } from "@/lib/constants";
 
 export function useWallet() {
   const { ready: authReady, authenticated, user, login } = usePrivy();
@@ -10,7 +9,6 @@ export function useWallet() {
   const [account, setAccount] = useState<{ address: string } | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const trackedAddressRef = useRef<string | null>(null);
   const wasEverNewUserRef = useRef<boolean>(false);
 
   // Effect: update account whenever wallets change
@@ -25,66 +23,6 @@ export function useWallet() {
     }
   }, [walletsReady, wallets]);
 
-  // Effect: track user when wallet connects
-  useEffect(() => {
-    console.log("[WALLET] useEffect triggered - account:", account?.address, "tracked:", trackedAddressRef.current);
-    
-    const trackUserConnection = async (address: string) => {
-      console.log("[WALLET] 🚀 First wallet connect - tracking user:", address);
-      
-      try {
-        const apiUrl = getApiUrl();
-        console.log("[WALLET] API URL:", apiUrl);
-        
-        const response = await fetch(`${apiUrl}/api/users/track`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ address }),
-        });
-
-        console.log("[WALLET] Response status:", response.status);
-
-        if (!response.ok) {
-          throw new Error(`Failed to track user: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("[WALLET] Track response:", data);
-        console.log("[WALLET] isNewUser value:", data.user?.isNewUser, "type:", typeof data.user?.isNewUser);
-        
-        // Remember if user was ever detected as new
-        if (data.user?.isNewUser === true) {
-          wasEverNewUserRef.current = true;
-          console.log("[WALLET] 🎉 NEW USER DETECTED! Marking as new user and showing modal!");
-          setShowWelcomeModal(true);
-          console.log("[WALLET] Modal state set to true");
-        } else if (wasEverNewUserRef.current) {
-          console.log("[WALLET] User was previously detected as new, still showing modal");
-          setShowWelcomeModal(true);
-        } else {
-          console.log("[WALLET] Not a new user, not showing modal");
-        }
-      } catch (error) {
-        console.error("[WALLET] Failed to track user:", error);
-      }
-    };
-
-    // Track only on first wallet connect
-    if (account?.address && !trackedAddressRef.current) {
-      console.log("[WALLET] First time seeing this address, tracking...");
-      trackedAddressRef.current = account.address;
-      trackUserConnection(account.address);
-    } else if (!account?.address) {
-      console.log("[WALLET] No account, resetting tracked address and new user status");
-      // Reset when wallet disconnects
-      trackedAddressRef.current = null;
-      wasEverNewUserRef.current = false;
-    } else {
-      console.log("[WALLET] Address already tracked, skipping");
-    }
-  }, [account]);
 
   const connectWallet = async () => {
     setIsConnecting(true);
@@ -135,7 +73,6 @@ export function useWallet() {
     (window as any).getWalletState = () => ({
       account: account?.address,
       showWelcomeModal,
-      trackedAddress: trackedAddressRef.current,
       wasEverNewUser: wasEverNewUserRef.current
     });
     console.log("[WALLET] Test functions available:");

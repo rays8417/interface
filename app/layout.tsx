@@ -5,7 +5,6 @@ import TopBar from "../components/TopBar";
 import ContentWrapper from "../components/ContentWrapper";
 import PrivyProviderWrapper from "../contexts/PrivyProvider";
 import { TournamentDataProvider } from "../contexts/TournamentDataContext";
-import ClientWrapper from "../components/ClientWrapper";
 import { Toaster } from "react-hot-toast";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import "./globals.css";
@@ -47,10 +46,8 @@ export default function RootLayout({
               <SidebarInset>
                 <TopBar />
                 <ContentWrapper>
-                  <ClientWrapper>
                     {children}
-                    <Analytics />
-                  </ClientWrapper>
+                    <Analytics />               
                 </ContentWrapper>
               </SidebarInset>
             </SidebarProvider>

@@ -25,12 +25,10 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     <div 
       className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm overflow-y-auto transition-all duration-200"
       style={{ zIndex: 9999 }}
-      onClick={onClose}
     >
       <div className="min-h-screen flex items-center justify-center p-4">
         <div 
           className="bg-surface border border-border rounded-lg shadow-2xl max-w-md w-full p-6 md:p-8 relative my-8 transition-all duration-200"
-          onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
           <button
