@@ -6,7 +6,9 @@ import { useWallets as useSolanaWallets } from '@privy-io/react-auth/solana';
 import { useState, useEffect } from "react";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
+import { useInviteCode } from "@/hooks/useInviteCode";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import InviteModal from "@/components/InviteModal";
 
 export default function TopBar() {
   const pathname = usePathname();
@@ -16,9 +18,32 @@ export default function TopBar() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // Check if user has an embedded wallet and extract Twitter username
+  const userAny = user as any;
+  const hasEmbeddedWallet = 
+    userAny?.wallet?.walletClientType === 'privy' && 
+    userAny?.wallet?.chainType === 'solana';
+
+  // Extract Twitter username for invite code
+  const getTwitterInfo = () => {
+    const twitterAccount = userAny?.linkedAccounts?.find((account: any) => 
+      account.type === 'twitter_oauth' || 
+      account.type === 'twitter' ||
+      account.type === 'x'
+    );
+    
+    return {
+      username: twitterAccount?.username || null,
+    };
+  };
+
+  const { username } = getTwitterInfo();
 
   const { availableTokens } = useLiquidityPairs();
   const { balances, loading: balancesLoading } = useTokenBalances(walletAddress || undefined, availableTokens);
+  const { inviteCode, isLoading: inviteLoading, getInviteUrl } = useInviteCode(username);
   const isLanding = pathname === "/";
 
   useEffect(() => {
@@ -28,12 +53,6 @@ export default function TopBar() {
     }
     setWalletAddress(wallets[0].address);
   }, [ready, wallets]);
-
-  // Check if user has an embedded wallet
-  const userAny = user as any;
-  const hasEmbeddedWallet = 
-    userAny?.wallet?.walletClientType === 'privy' && 
-    userAny?.wallet?.chainType === 'solana';
 
   // Close dropdown on Escape key or click outside
   useEffect(() => {
@@ -105,6 +124,10 @@ export default function TopBar() {
     return email;
   };
 
+  const handleInviteClick = () => {
+    setShowInviteModal(true);
+  };
+
   // Don't render top bar on landing page
   if (isLanding) {
     return null;
@@ -147,14 +170,23 @@ export default function TopBar() {
                 )}
               </div>
               {authenticated && walletAddress ? (
-                <a 
-                  href={`https://boson-faucet.vercel.app/?address=${walletAddress}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium bg-muted text-primary hover:bg-surface-elevated rounded-lg transition-colors border border-border hover:border-primary/50"
-                >
-                  Get Testnet Boson
-                </a>
+                <>
+                  <a 
+                    href={`https://boson-faucet.vercel.app/?address=${walletAddress}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium bg-muted text-primary hover:bg-surface-elevated rounded-lg transition-colors border border-border hover:border-primary/50"
+                  >
+                    Get Testnet Boson
+                  </a>
+                  <button
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium bg-muted text-primary hover:bg-surface-elevated rounded-lg transition-colors border border-border hover:border-primary/50"
+                    onClick={handleInviteClick}
+                    disabled={inviteLoading}
+                  >
+                    Invite +
+                  </button>
+                </>
               ) : (
                 <div /> 
               )}
@@ -194,6 +226,12 @@ export default function TopBar() {
           </div>
         </div>
       </header>
+      <InviteModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        inviteCode={inviteCode || ''}
+        inviteUrl={getInviteUrl()}
+      />
     </>
   );
 }
