@@ -25,8 +25,6 @@ export function useTrackUser(address: string | undefined) {
     setIsNewUser(null);
 
     const trackUser = async () => {
-      console.log("[TRACK] Tracking user with address:", address);
-
       // Extract Twitter username from Privy user object
       const userAny = user as any;
       const twitterAccount = userAny?.linkedAccounts?.find((account: any) =>
@@ -64,8 +62,6 @@ export function useTrackUser(address: string | undefined) {
         }
 
         const data = await response.json();
-        console.log("[TRACK] Track response:", data);
-        console.log("[TRACK] isNewUser:", data.user?.isNewUser);
         
         // Set isNewUser status
         setIsNewUser(data.user?.isNewUser === true);
@@ -73,10 +69,8 @@ export function useTrackUser(address: string | undefined) {
         // Clear invite code after successful tracking
         if (inviteCode && typeof window !== 'undefined') {
           localStorage.removeItem('referralCode');
-          console.log('[TRACK] ✅ Cleared referral code from localStorage');
         }
       } catch (error) {
-        console.error("[TRACK] Failed to track user:", error);
         // Reset on error so it can retry
         trackedAddressRef.current = null;
         setIsNewUser(null);
