@@ -1,30 +1,17 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useWallet } from "../hooks/useWallet";
 import LiquidEther from "../components/LiquidEther";
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect } from "react";
+import { Suspense } from "react";
+import SearchParamsHandler from "./SearchParamsHandler";
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { account, isConnecting, connectWallet } = useWallet();
   const { ready, authenticated } = usePrivy();
-
-  // Extract referral code from URL parameters
-  useEffect(() => {
-    const referralCode = searchParams.get('ref');
-    console.log('[LANDING PAGE] Checking URL params for ref code:', referralCode);
-    if (referralCode) {
-      console.log('[LANDING PAGE] ✅ Found referral code:', referralCode);
-      // Store referral code in localStorage for later use during signup
-      localStorage.setItem('referralCode', referralCode);
-      console.log('[LANDING PAGE] ✅ Stored referral code in localStorage');
-    } else {
-      console.log('[LANDING PAGE] ℹ️ No referral code found in URL');
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     if (!ready) return;
@@ -121,6 +108,15 @@ export default function Home() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="h-screen bg-background" />}>
+      <SearchParamsHandler />
+      <HomeContent />
+    </Suspense>
   );
 }
 
