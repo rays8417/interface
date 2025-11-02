@@ -2,10 +2,12 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
 import { useState, useEffect, useRef } from "react";
 import { getApiUrl } from "@/lib/constants";
+import { useUserData } from "@/contexts/UserDataContext";
 
 export function useWallet() {
   const { ready: authReady, authenticated, user, login } = usePrivy();
   const { ready: walletsReady, wallets } = useWallets();
+  const { fetchUserData } = useUserData();
 
   const [account, setAccount] = useState<{ address: string } | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -71,6 +73,9 @@ export function useWallet() {
         if (referralCode && typeof window !== 'undefined') {
           localStorage.removeItem('referralCode');
         }
+        
+        // Fetch complete user data (XP, VP, invites, etc.)
+        await fetchUserData(address);
         
         // Remember if user was ever detected as new
         if (data.user?.isNewUser === true) {

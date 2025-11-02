@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
 import { useInviteCode } from "@/hooks/useInviteCode";
+import { useUserData } from "@/contexts/UserDataContext";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import InviteModal from "@/components/InviteModal";
 
@@ -44,6 +45,7 @@ export default function TopBar() {
   const { availableTokens } = useLiquidityPairs();
   const { balances, loading: balancesLoading } = useTokenBalances(walletAddress || undefined, availableTokens);
   const { inviteCode, isLoading: inviteLoading, getInviteUrl } = useInviteCode(username);
+  const { getTotalXP } = useUserData();
   const isLanding = pathname === "/";
 
   useEffect(() => {
@@ -145,6 +147,7 @@ export default function TopBar() {
           <div className="flex-1 flex justify-end">
             {authenticated && walletAddress ? (
               <div className="flex items-center gap-3">
+              {/* BOSON Balance */}
               <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted text-foreground text-sm rounded-md border border-border">
                 <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                   B
@@ -159,6 +162,17 @@ export default function TopBar() {
                   )}
                 </span>
               </div>
+              
+              {/* XP Display */}
+              <div className="flex items-center gap-2 px-2.5 py-1.5 bg-yellow-500/10 text-foreground text-sm rounded-md border border-yellow-500/20">
+                <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="font-medium">
+                  {getTotalXP().toLocaleString()} XP
+                </span>
+              </div>
+              
               <div className="relative">
                 <button
                   onClick={handleCopyAddress}

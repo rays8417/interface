@@ -5,6 +5,7 @@ import TopBar from "../components/TopBar";
 import ContentWrapper from "../components/ContentWrapper";
 import PrivyProviderWrapper from "../contexts/PrivyProvider";
 import { TournamentDataProvider } from "../contexts/TournamentDataContext";
+import { UserDataProvider } from "../contexts/UserDataContext";
 import { Toaster } from "react-hot-toast";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import "./globals.css";
@@ -40,18 +41,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased scrollbar-thin`}
       >
         <PrivyProviderWrapper>
-          <TournamentDataProvider>
-            <SidebarProvider>
-              <Sidebar />
-              <SidebarInset>
-                <TopBar />
-                <ContentWrapper>
-                    {children}
-                    <Analytics />               
-                </ContentWrapper>
-              </SidebarInset>
-            </SidebarProvider>
-          </TournamentDataProvider>
+          <UserDataProvider>
+            <TournamentDataProvider>
+              <SidebarProvider>
+                <Sidebar />
+                <SidebarInset>
+                  <TopBar />
+                  <ContentWrapper>
+                      {children}
+                      <Analytics />               
+                  </ContentWrapper>
+                </SidebarInset>
+              </SidebarProvider>
+            </TournamentDataProvider>
+          </UserDataProvider>
           <Toaster 
             position="bottom-right"
             containerStyle={{

@@ -7,6 +7,11 @@ const nextConfig = {
         hostname: 'pbs.twimg.com',
         pathname: '/profile_images/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'abs.twimg.com',
+        pathname: '/**',
+      },
     ],
   },
 };
