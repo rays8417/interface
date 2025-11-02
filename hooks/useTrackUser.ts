@@ -1,64 +1,98 @@
-import { useCallback } from 'react';
-import toast from 'react-hot-toast';
+import { useEffect, useRef, useState } from "react";
+import { usePrivy } from "@privy-io/react-auth";
+import { getApiUrl } from "@/lib/constants";
 
-interface TrackUserParams {
-  address: string;
-  twitterUsername: string;
-}
+/**
+ * Hook to track user when their wallet address changes
+ * Sends a track request with address, Twitter username, and invite code if available
+ * Returns isNewUser status from the track response
+ */
+export function useTrackUser(address: string | undefined) {
+  const { user } = usePrivy();
+  const trackedAddressRef = useRef<string | null>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
 
-export function useTrackUser() {
-  const trackUser = useCallback(async (params: TrackUserParams) => {
-    console.log('[TRACK USER] 🚀 Starting user tracking with params:', params);
-    
-    try {
-      // Get referral code from localStorage if it exists
-      const referralCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') : null;
-      console.log('[TRACK USER] 🔍 Referral code from localStorage:', referralCode);
-
-      const payload = {
-        address: params.address,
-        twitterUsername: params.twitterUsername,
-        ...(referralCode && { referralCode }),
-      };
-
-      console.log('[TRACK USER] 📤 Sending payload:', JSON.stringify(payload, null, 2));
-
-      const response = await fetch('/api/users/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('[TRACK USER] 📥 Response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[TRACK USER] ❌ API error response:', errorText);
-        throw new Error('Failed to track user');
-      }
-
-      const data = await response.json();
-      console.log('[TRACK USER] ✅ API response:', data);
-
-      // Clear referral code after successful tracking
-      if (referralCode && typeof window !== 'undefined') {
-        localStorage.removeItem('referralCode');
-        console.log('[TRACK USER] ✅ Cleared referral code from localStorage');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('[TRACK USER] ❌ Error tracking user:', error);
-      console.error('[TRACK USER] Error details:', {
-        message: (error as Error).message,
-        stack: (error as Error).stack,
-      });
-      // Don't show error toast to user - this is a non-critical operation
-      return null;
+  // Track user when address changes (only once per address)
+  useEffect(() => {
+    // Skip if no address or already tracked this address
+    if (!address || trackedAddressRef.current === address) {
+      return;
     }
-  }, []);
 
-  return { trackUser };
+    // Mark as tracked BEFORE async call
+    trackedAddressRef.current = address;
+    // Reset isNewUser state
+    setIsNewUser(null);
+
+    const trackUser = async () => {
+      console.log("[TRACK] Tracking user with address:", address);
+
+      // Extract Twitter username from Privy user object
+      const userAny = user as any;
+      const twitterAccount = userAny?.linkedAccounts?.find((account: any) =>
+        account.type === "twitter_oauth" ||
+        account.type === "twitter" ||
+        account.type === "x"
+      );
+      const twitterUsername = twitterAccount?.username || null;
+
+      // Get invite code from localStorage if it exists
+      const inviteCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') : null;
+
+      try {
+        const apiUrl = getApiUrl();
+        const payload: any = { 
+          address, 
+          twitterUsername 
+        };
+
+        // Add invite code if present
+        if (inviteCode) {
+          payload.inviteCode = inviteCode;
+        }
+
+        const response = await fetch(`${apiUrl}/api/users/track`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to track user: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("[TRACK] Track response:", data);
+        console.log("[TRACK] isNewUser:", data.user?.isNewUser);
+        
+        // Set isNewUser status
+        setIsNewUser(data.user?.isNewUser === true);
+
+        // Clear invite code after successful tracking
+        if (inviteCode && typeof window !== 'undefined') {
+          localStorage.removeItem('referralCode');
+          console.log('[TRACK] ✅ Cleared referral code from localStorage');
+        }
+      } catch (error) {
+        console.error("[TRACK] Failed to track user:", error);
+        // Reset on error so it can retry
+        trackedAddressRef.current = null;
+        setIsNewUser(null);
+      }
+    };
+
+    trackUser();
+  }, [address, user]);
+
+  // Reset tracked address when address becomes null/undefined
+  useEffect(() => {
+    if (!address) {
+      trackedAddressRef.current = null;
+      setIsNewUser(null);
+    }
+  }, [address]);
+
+  return { isNewUser };
 }

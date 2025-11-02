@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useWallet } from "@/hooks/useWallet";
+import { useTrackUser } from "@/hooks/useTrackUser";
+import WelcomeModal from "@/components/WelcomeModal";
 import SwapCard from "@/components/swaps/SwapCard";
 import LivePricesCard from "@/components/swaps/LivePricesCard";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
@@ -15,6 +17,17 @@ import { BOSON_TOKEN } from "@/lib/constants";
 function SwapsPageContent() {
   const { account } = useWallet();
   const searchParams = useSearchParams();
+  
+  // Track user when address changes
+  const { isNewUser } = useTrackUser(account?.address);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  
+  // Show welcome modal if user is new
+  useEffect(() => {
+    if (isNewUser === true) {
+      setShowWelcomeModal(true);
+    }
+  }, [isNewUser]);
   
   const [payAmount, setPayAmount] = useState("");
   const [isSwapped, setIsSwapped] = useState(false);
@@ -231,72 +244,81 @@ function SwapsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Token Swap</h1>
-            <p className="text-foreground-muted text-sm">
-              Exchange your tokens instantly with live pricing
-            </p>
-          </div>
-
-          {!account && (
-            <div className="border-2 border-warning rounded-xl px-4 py-3 bg-surface/30">
-              <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
-              <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
+    <>
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => {
+          console.log("[SWAPS] Closing welcome modal");
+          setShowWelcomeModal(false);
+        }}
+      />
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Token Swap</h1>
+              <p className="text-foreground-muted text-sm">
+                Exchange your tokens instantly with live pricing
+              </p>
             </div>
-          )}
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          <div className="lg:col-span-7">
-            <SwapCard
-              payAmount={payAmount}
-              receiveAmount={receiveAmount}
-              isSwapped={isSwapped}
-              fromToken={tokens.from}
-              toToken={tokens.to}
-              fromBalance={tokens.fromBalance}
-              toBalance={tokens.toBalance}
-              isLoading={combinedLoading}
-              account={account}
-              availableTokens={availableTokens}
-              selectedPlayerToken={selectedPlayerToken}
-              onPayAmountChange={handlePayChange}
-              onSwapDirection={swapTokens}
-              onSwap={handleSwap}
-              onSetPercent={setPercent}
-              onTokenChange={(tokenName) => {
-                setSelectedPlayerToken(tokenName);
-                setPayAmount("");
-                setReceiveAmount("");
-              }}
-            />
+            {!account && (
+              <div className="border-2 border-warning rounded-xl px-4 py-3 bg-surface/30">
+                <p className="text-sm font-medium text-warning mb-1">Wallet not connected</p>
+                <p className="text-xs text-warning">Use the Connect Wallet button in the navbar</p>
+              </div>
+            )}
           </div>
 
-          <div className="lg:col-span-5">
-            <LivePricesCard
-              isLoading={priceLoading}
-              tokenPrices={tokenPrices}
-              selectedToken={selectedToken}
-              receiveAmount={receiveAmount}
-              getCurrentTokens={getCurrentTokens}
-              onRefresh={() => {
-                if (selectedToken) {
-                  refetchPrice(selectedToken.mint, BOSON_TOKEN.mint);
-                }
-              }}
-              onLoadPrices={() => {
-                if (selectedToken) {
-                  refetchPrice(selectedToken.mint, BOSON_TOKEN.mint);
-                }
-              }}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <div className="lg:col-span-7">
+              <SwapCard
+                payAmount={payAmount}
+                receiveAmount={receiveAmount}
+                isSwapped={isSwapped}
+                fromToken={tokens.from}
+                toToken={tokens.to}
+                fromBalance={tokens.fromBalance}
+                toBalance={tokens.toBalance}
+                isLoading={combinedLoading}
+                account={account}
+                availableTokens={availableTokens}
+                selectedPlayerToken={selectedPlayerToken}
+                onPayAmountChange={handlePayChange}
+                onSwapDirection={swapTokens}
+                onSwap={handleSwap}
+                onSetPercent={setPercent}
+                onTokenChange={(tokenName) => {
+                  setSelectedPlayerToken(tokenName);
+                  setPayAmount("");
+                  setReceiveAmount("");
+                }}
+              />
+            </div>
+
+            <div className="lg:col-span-5">
+              <LivePricesCard
+                isLoading={priceLoading}
+                tokenPrices={tokenPrices}
+                selectedToken={selectedToken}
+                receiveAmount={receiveAmount}
+                getCurrentTokens={getCurrentTokens}
+                onRefresh={() => {
+                  if (selectedToken) {
+                    refetchPrice(selectedToken.mint, BOSON_TOKEN.mint);
+                  }
+                }}
+                onLoadPrices={() => {
+                  if (selectedToken) {
+                    refetchPrice(selectedToken.mint, BOSON_TOKEN.mint);
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

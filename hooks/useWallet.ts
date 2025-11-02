@@ -1,5 +1,5 @@
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";  // or maybe just '@privy-io/react-auth' depending on version
+import { useWallets } from "@privy-io/react-auth/solana";
 import { useState, useEffect, useRef } from "react";
 import { getApiUrl } from "@/lib/constants";
 
@@ -163,12 +163,12 @@ export function useWallet() {
     } else {
       console.log("[WALLET] Address already tracked, skipping");
     }
-  }, [account]);
+  }, [account, user]);
 
   const connectWallet = async () => {
     setIsConnecting(true);
     try {
-       login();
+      login();
       // After login, we rely on the above effects to create/use wallet
     } catch (error) {
       console.error("Failed to connect wallet (login):", error);
@@ -214,7 +214,6 @@ export function useWallet() {
     (window as any).getWalletState = () => ({
       account: account?.address,
       showWelcomeModal,
-      trackedAddress: trackedAddressRef.current,
       wasEverNewUser: wasEverNewUserRef.current
     });
     console.log("[WALLET] Test functions available:");
