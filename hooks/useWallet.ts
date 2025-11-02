@@ -35,24 +35,99 @@ export function useWallet() {
       try {
         const apiUrl = getApiUrl();
         console.log("[WALLET] API URL:", apiUrl);
+
+        // Get referral code and Twitter username
+        console.log("[WALLET] 🔍 Checking for referral code in localStorage...");
+        const referralCode = typeof window !== 'undefined' ? localStorage.getItem('referralCode') : null;
+        console.log("[WALLET] Referral code found:", referralCode);
+
+        console.log("[WALLET] 🔍 Extracting Twitter username...");
+        const userAny = user as any;
+        console.log("[WALLET] User object:", userAny);
+        console.log("[WALLET] Linked accounts:", userAny?.linkedAccounts);
+        
+        const twitterAccount = userAny?.linkedAccounts?.find((account: any) => 
+          account.type === 'twitter_oauth' || 
+          account.type === 'twitter' ||
+          account.type === 'x'
+        );
+        console.log("[WALLET] Twitter account found:", twitterAccount);
+        
+        const twitterUsername = twitterAccount?.username || null;
+        console.log("[WALLET] Twitter username:", twitterUsername);
+
+        const payload: any = { address };
+        if (twitterUsername) {
+          payload.twitterUsername = twitterUsername;
+          console.log("[WALLET] ✅ Added twitterUsername to payload");
+        }
+        if (referralCode) {
+          payload.inviteCode = referralCode;
+          console.log("[WALLET] ✅ Added inviteCode to payload");
+        }
+
+        console.log("[WALLET] 📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
         
         const response = await fetch(`${apiUrl}/api/users/track`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ address }),
+          body: JSON.stringify(payload),
         });
 
-        console.log("[WALLET] Response status:", response.status);
+        console.log("[WALLET] 📥 Response status:", response.status);
+        console.log("[WALLET] Response headers:", response.headers);
 
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error("[WALLET] ❌ Response not OK. Error text:", errorText);
           throw new Error(`Failed to track user: ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log("[WALLET] Track response:", data);
+        console.log("[WALLET] ✅ Track response received:", data);
         console.log("[WALLET] isNewUser value:", data.user?.isNewUser, "type:", typeof data.user?.isNewUser);
+        
+        // 🔍 DEBUGGING: Fetch the complete record from DB to verify what was stored
+        console.log("[WALLET] 🔍 Fetching complete user record from database...");
+        try {
+          const getResponse = await fetch(`${apiUrl}/api/users/${address}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          
+          if (getResponse.ok) {
+            const response = await getResponse.json();
+            const dbRecord = response.user; // Extract the user object from the response
+            console.log("[WALLET] 📊 COMPLETE DB RECORD:", JSON.stringify(dbRecord, null, 2));
+            console.log("[WALLET] Address:", dbRecord.address);
+            console.log("[WALLET] Twitter Username:", dbRecord.twitterUsername);
+            console.log("[WALLET] Referral Code:", dbRecord.referralCode);
+            console.log("[WALLET] Is New User:", dbRecord.isNewUser);
+            console.log("[WALLET] Created At:", dbRecord.createdAt);
+            console.log("[WALLET] Updated At:", dbRecord.updatedAt);
+            
+            // ⚠️ Check for missing fields
+            console.log("[WALLET] ⚠️ FIELD VALIDATION:");
+            console.log("[WALLET]   - twitterUsername saved?", !!dbRecord.twitterUsername, `(value: ${dbRecord.twitterUsername})`);
+            console.log("[WALLET]   - referralCode saved?", !!dbRecord.referralCode, `(value: ${dbRecord.referralCode})`);
+          } else {
+            console.error("[WALLET] ❌ Failed to fetch user record. Status:", getResponse.status);
+            const errorText = await getResponse.text();
+            console.error("[WALLET] Error response:", errorText);
+          }
+        } catch (fetchError) {
+          console.error("[WALLET] ❌ Error fetching complete user record:", fetchError);
+        }
+        
+        // Clear referral code after successful tracking
+        if (referralCode && typeof window !== 'undefined') {
+          localStorage.removeItem('referralCode');
+          console.log("[WALLET] ✅ Cleared referral code from localStorage");
+        }
         
         // Remember if user was ever detected as new
         if (data.user?.isNewUser === true) {
@@ -64,10 +139,14 @@ export function useWallet() {
           console.log("[WALLET] User was previously detected as new, still showing modal");
           setShowWelcomeModal(true);
         } else {
-          console.log("[WALLET] Not a new user, not showing modal");
+          console.log("[WALLET] ℹ️ Not a new user, not showing modal");
         }
       } catch (error) {
-        console.error("[WALLET] Failed to track user:", error);
+        console.error("[WALLET] ❌ Failed to track user:", error);
+        console.error("[WALLET] Error details:", {
+          message: (error as Error).message,
+          stack: (error as Error).stack,
+        });
       }
     };
 

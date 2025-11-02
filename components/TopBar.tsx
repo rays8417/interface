@@ -125,7 +125,11 @@ export default function TopBar() {
   };
 
   const handleInviteClick = () => {
+    console.log('[TOPBAR] 🎯 Invite button clicked');
+    console.log('[TOPBAR] Invite code:', inviteCode);
+    console.log('[TOPBAR] Username:', username);
     setShowInviteModal(true);
+    console.log('[TOPBAR] ✅ Modal state updated');
   };
 
   // Don't render top bar on landing page
@@ -230,7 +234,6 @@ export default function TopBar() {
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         inviteCode={inviteCode || ''}
-        inviteUrl={getInviteUrl()}
       />
     </>
   );

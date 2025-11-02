@@ -7,23 +7,35 @@ interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
   inviteCode: string;
-  inviteUrl: string;
 }
 
 export default function InviteModal({
   isOpen,
   onClose,
   inviteCode,
-  inviteUrl,
 }: InviteModalProps) {
   const [copied, setCopied] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const getInviteUrl = (): string => {
+    if (!inviteCode) {
+      console.log('[INVITE MODAL] ⚠️ No invite code available');
+      return '';
+    }
+    const url = `tenjaku.fun/?ref=${inviteCode}`;
+    console.log('[INVITE MODAL] 📝 Generated invite URL:', url);
+    return url;
+  };
 
   useEffect(() => {
-    if (!isOpen) return;
+    console.log('[INVITE MODAL] Modal opened. Invite code:', inviteCode);
+    if (!isOpen) {
+      console.log('[INVITE MODAL] Modal closed');
+      return;
+    }
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        console.log('[INVITE MODAL] Closing via ESC key');
         onClose();
       }
     };
@@ -31,27 +43,36 @@ export default function InviteModal({
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (modalRef.current && !modalRef.current.contains(target)) {
+        console.log('[INVITE MODAL] Closing via outside click');
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    document.addEventListener('click', handleClickOutside);
+    // Add small delay to prevent immediate closure from the same click event
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('click', handleClickOutside);
+    }, 50);
 
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('click', handleClickOutside);
     };
   }, [isOpen, onClose]);
 
   const handleCopyInviteLink = async () => {
+    console.log('[INVITE MODAL] 📋 Copy button clicked');
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      const url = getInviteUrl();
+      console.log('[INVITE MODAL] 📋 Copying to clipboard:', url);
+      await navigator.clipboard.writeText(url);
+      console.log('[INVITE MODAL] ✅ Successfully copied to clipboard');
       setCopied(true);
       toast.success('Invite link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy invite link:', error);
+      console.error('[INVITE MODAL] ❌ Failed to copy invite link:', error);
       toast.error('Failed to copy invite link');
     }
   };
@@ -102,7 +123,7 @@ export default function InviteModal({
               Your Invite Link
             </div>
             <div className="text-lg font-mono font-bold text-primary break-all">
-              {inviteUrl}
+              {getInviteUrl()}
             </div>
           </div>
 

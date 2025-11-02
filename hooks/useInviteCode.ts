@@ -12,7 +12,7 @@ export function useInviteCode(username?: string | null) {
 
   const getInviteUrl = (): string => {
     if (!inviteCode) return '';
-    return `tenjaku.fun/${inviteCode}`;
+    return `tenjaku.fun/invite/${inviteCode}`;
   };
 
   return {
