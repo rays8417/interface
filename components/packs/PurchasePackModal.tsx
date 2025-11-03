@@ -176,20 +176,12 @@ export default function PurchasePackModal({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-foreground-muted">Total Value:</span>
-                    <span className="text-sm font-medium text-foreground">{Number(totalValue).toFixed(2)} BOSON</span>
+                    {purchasedWithXP ? (
+                      <span className="text-sm font-medium text-yellow-500">{xpDeducted} XP</span>
+                    ) : (
+                      <span className="text-sm font-medium text-foreground">{Number(totalValue).toFixed(2)} BOSON</span>
+                    )}
                   </div>
-                  {purchasedWithXP && (
-                    <>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-foreground-muted">XP Deducted:</span>
-                        <span className="text-sm font-medium text-purple-500">-{xpDeducted} XP</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-foreground-muted">Remaining XP:</span>
-                        <span className="text-sm font-medium text-foreground">{remainingXP.toLocaleString()} XP</span>
-                      </div>
-                    </>
-                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-foreground-muted">Pack ID:</span>
                     <span className="text-sm font-mono text-foreground-muted">{packId.slice(0, 8)}...</span>

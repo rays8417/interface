@@ -92,7 +92,7 @@ export default function PaymentSelectionModal({
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">Pay with BOSON</div>
-                  <div className="text-sm text-foreground-muted">Use your BOSON tokens</div>
+                  
                 </div>
               </div>
               {hasEnoughBoson && (
@@ -124,22 +124,24 @@ export default function PaymentSelectionModal({
             disabled={!hasEnoughXP || loading}
             className={`w-full p-5 rounded-xl border-2 transition-all duration-200 text-left ${
               hasEnoughXP && !loading
-                ? "border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20 hover:border-purple-500 cursor-pointer"
+                ? "border-yellow-500/50 bg-yellow-500/10 hover:bg-yellow-500/20 hover:border-yellow-500 cursor-pointer"
                 : "border-border bg-surface-elevated opacity-50 cursor-not-allowed"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                  XP
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center border-2 border-yellow-500/30">
+                  <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">Pay with XP</div>
-                  <div className="text-sm text-foreground-muted">Use your experience points</div>
+                  
                 </div>
               </div>
               {hasEnoughXP && (
-                <svg className="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-6 h-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               )}
