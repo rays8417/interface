@@ -6,10 +6,12 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorDisplay from "@/components/ui/ErrorDisplay";
 import LeaderboardTable from "@/components/leaderboard/LeaderboardTable";
 import { useLeaderboardData } from "@/hooks/useLeaderboardData";
+import { useWallet } from "@/hooks/useWallet";
 
 export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { leaderboardData, totalAddresses, loading, error } = useLeaderboardData();
+  const { account } = useWallet();
 
   const filteredData = leaderboardData.filter(entry =>
     entry.walletAddress.toLowerCase().includes(searchQuery.toLowerCase())
@@ -37,6 +39,7 @@ export default function LeaderboardPage() {
             <LeaderboardTable 
               entries={filteredData} 
               totalAddresses={totalAddresses}
+              userWalletAddress={account?.address}
             />
             
             {/* <div className="flex flex-col sm:flex-row gap-4 my-6">

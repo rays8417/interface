@@ -1,5 +1,7 @@
 import { useState } from "react";
 import EmptyState from "../ui/EmptyState";
+import ShareModal from "./ShareModal";
+import { Share2 } from "lucide-react";
 
 interface LeaderboardEntry {
   id: string;
@@ -12,6 +14,7 @@ interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   totalAddresses?: number;
   className?: string;
+  userWalletAddress?: string;
 }
 
 const formatWalletAddress = (address: string) => {
@@ -26,8 +29,19 @@ const formatRewards = (amount: number) => {
   }).format(amount);
 };
 
-export default function LeaderboardTable({ entries, totalAddresses, className = "" }: LeaderboardTableProps) {
+export default function LeaderboardTable({ entries, totalAddresses, className = "", userWalletAddress }: LeaderboardTableProps) {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  const [shareModalData, setShareModalData] = useState<{
+    isOpen: boolean;
+    rank: number;
+    rewards: number;
+    walletAddress: string;
+  }>({
+    isOpen: false,
+    rank: 0,
+    rewards: 0,
+    walletAddress: "",
+  });
 
   const handleCopyAddress = async (address: string) => {
     try {
@@ -38,13 +52,35 @@ export default function LeaderboardTable({ entries, totalAddresses, className = 
       console.error("Failed to copy address:", err);
     }
   };
+
+  const handleShareClick = (entry: LeaderboardEntry) => {
+    setShareModalData({
+      isOpen: true,
+      rank: entry.rank,
+      rewards: entry.rewards,
+      walletAddress: entry.walletAddress,
+    });
+  };
+
+  const closeShareModal = () => {
+    setShareModalData({
+      isOpen: false,
+      rank: 0,
+      rewards: 0,
+      walletAddress: "",
+    });
+  };
+
+  const isUserEntry = (address: string) => {
+    return userWalletAddress && address.toLowerCase() === userWalletAddress.toLowerCase();
+  };
   return (
     <div className={className}>
       <div className="border border-border rounded-xl overflow-hidden bg-card">
         
         {/* Table Header */}
         <div className="bg-surface border-b border-border">
-          <div className="grid grid-cols-[100px_1fr_200px] px-6 py-4">
+          <div className="grid grid-cols-[100px_1fr_200px_80px] px-6 py-4">
             <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
               Rank
             </div>
@@ -53,6 +89,9 @@ export default function LeaderboardTable({ entries, totalAddresses, className = 
             </div>
             <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
               Rewards
+            </div>
+            <div className="text-sm font-semibold text-foreground-muted uppercase tracking-wide">
+              Share
             </div>
           </div>
         </div>
@@ -63,7 +102,9 @@ export default function LeaderboardTable({ entries, totalAddresses, className = 
             entries.map((entry) => (
               <div
                 key={entry.id}
-                className="grid grid-cols-[100px_1fr_200px] px-6 py-4 hover:bg-surface-elevated/50 transition-colors"
+                className={`grid grid-cols-[100px_1fr_200px_80px] px-6 py-4 hover:bg-surface-elevated/50 transition-colors ${
+                  isUserEntry(entry.walletAddress) ? "bg-primary/5 border-l-4 border-l-primary" : ""
+                }`}
               >
                 {/* Rank */}
                 <div className="flex items-center">
@@ -81,6 +122,11 @@ export default function LeaderboardTable({ entries, totalAddresses, className = 
                   >
                     {formatWalletAddress(entry.walletAddress)}
                   </button>
+                  {isUserEntry(entry.walletAddress) && (
+                    <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                      You
+                    </span>
+                  )}
                   {copiedAddress === entry.walletAddress && (
                     <div className="flex items-center gap-1 text-xs text-white font-medium animate-in fade-in slide-in-from-left-2 duration-200">
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,6 +145,20 @@ export default function LeaderboardTable({ entries, totalAddresses, className = 
                   <span className="text-lg font-bold text-foreground">
                     {formatRewards(entry.rewards)}
                   </span>
+                </div>
+
+                {/* Share Button */}
+                <div className="flex items-center justify-center">
+                  {isUserEntry(entry.walletAddress) && (
+                    <button
+                      onClick={() => handleShareClick(entry)}
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg transition-all shadow-sm shadow-primary/20 hover:shadow-primary/30 font-medium text-sm"
+                      title="Share your achievement"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>Share</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -125,6 +185,15 @@ export default function LeaderboardTable({ entries, totalAddresses, className = 
           )}
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModalData.isOpen}
+        onClose={closeShareModal}
+        rank={shareModalData.rank}
+        rewards={shareModalData.rewards}
+        walletAddress={shareModalData.walletAddress}
+      />
     </div>
   );
 }
