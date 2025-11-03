@@ -6,11 +6,14 @@ import SearchBar from "@/components/ui/SearchBar";
 import EmptyState from "@/components/ui/EmptyState";
 import PlayerCard from "@/components/players/PlayerCard";
 import PurchasePackModal from "@/components/packs/PurchasePackModal";
+import PaymentSelectionModal from "@/components/packs/PaymentSelectionModal";
 import { useWallet } from "@/hooks/useWallet";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useVaultDeposit } from "@/hooks/useVaultDeposit";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
 import { usePackOpening } from "@/hooks/usePackOpening";
+import { useBuyPackWithXP } from "@/hooks/useBuyPackWithXP";
+import { useUserData } from "@/contexts/UserDataContext";
 
 type FilterOption = "All" | "BAT" | "BWL" | "AR" | "WK";
 
@@ -30,12 +33,23 @@ export default function PlayersPage() {
     ultra: false
   });
 
+  // Payment selection modal states
+  const [showPaymentSelection, setShowPaymentSelection] = useState(false);
+  const [selectedPackForPurchase, setSelectedPackForPurchase] = useState<{
+    type: string;
+    bosonCost: number;
+    xpCost: number;
+  } | null>(null);
+
   // Pack opening modal states
   const [showPackOpening, setShowPackOpening] = useState(false);
   const [currentPack, setCurrentPack] = useState<{
     packId: string;
     packType: string;
     totalValue: number;
+    purchasedWithXP?: boolean;
+    xpDeducted?: number;
+    remainingXP?: number;
   } | null>(null);
 
   const { account } = useWallet();
@@ -43,16 +57,43 @@ export default function PlayersPage() {
   const { balances, loading: balancesLoading, refetch: refetchBalances } = useTokenBalances(account?.address, availableTokens);
   const { executeDeposit } = useVaultDeposit();
   const { getLatestUnopenedPack } = usePackOpening();
+  const { buyPackWithXP } = useBuyPackWithXP();
+  const { getTotalXP, refreshUserData } = useUserData();
 
   const allPlayers = getAllPlayerInfos();
 
-  const handlePackOpen = async (packType: string, amount: number) => {
+  // XP costs for packs (you can adjust these values)
+  const PACK_XP_COSTS = {
+    base: 400,
+    prime: 1000,
+    ultra: 2000,
+  };
+
+  const handlePackOpen = (packType: string, bosonCost: number) => {
     if (!account) {
       console.error("No account connected");
       return;
     }
+
+    const packKey = packType.toLowerCase() as 'base' | 'prime' | 'ultra';
     
+    // Show payment selection modal
+    setSelectedPackForPurchase({
+      type: packType,
+      bosonCost: bosonCost,
+      xpCost: PACK_XP_COSTS[packKey],
+    });
+    setShowPaymentSelection(true);
+  };
+
+  const handlePurchaseWithBoson = async () => {
+    if (!account || !selectedPackForPurchase) return;
+    
+    const packType = selectedPackForPurchase.type;
+    const amount = selectedPackForPurchase.bosonCost;
     const packKey = packType.toLowerCase();
+    
+    setShowPaymentSelection(false);
     setLoadingPacks(prev => ({ ...prev, [packKey]: true }));
 
     try {
@@ -67,7 +108,8 @@ export default function PlayersPage() {
         const packData = {
           packId: `loading_${packType}_${Date.now()}`, // Temporary ID while loading
           packType: packType.charAt(0).toUpperCase() + packType.slice(1),
-          totalValue: amount
+          totalValue: amount,
+          purchasedWithXP: false,
         };
 
         setCurrentPack(packData);
@@ -82,7 +124,8 @@ export default function PlayersPage() {
           const realPackData = {
             packId: packResult.data.id,
             packType: packResult.data.packType,
-            totalValue: Number(packResult.data.totalValue)
+            totalValue: Number(packResult.data.totalValue),
+            purchasedWithXP: false,
           };
 
           setCurrentPack(realPackData);
@@ -96,6 +139,53 @@ export default function PlayersPage() {
     } finally {
       setLoadingPacks(prev => ({ ...prev, [packKey]: false }));
     }
+  };
+
+  const handlePurchaseWithXP = async () => {
+    if (!account || !selectedPackForPurchase) return;
+    
+    const packType = selectedPackForPurchase.type;
+    const packKey = packType.toLowerCase();
+    
+    setShowPaymentSelection(false);
+    setLoadingPacks(prev => ({ ...prev, [packKey]: true }));
+
+    try {
+      const packTypeUpper = packType.toUpperCase() as "BASE" | "PRIME" | "ULTRA";
+      const result = await buyPackWithXP(account.address, packTypeUpper);
+      
+      if (result.success && result.data) {
+        // Refresh user data to update XP
+        await refreshUserData();
+        
+        // Show modal with pack data
+        const packData = {
+          packId: result.data.packId,
+          packType: result.data.packType,
+          totalValue: Number(result.data.totalValue),
+          purchasedWithXP: true,
+          xpDeducted: result.data.xpDeducted,
+          remainingXP: result.data.remainingXP,
+        };
+
+        setCurrentPack(packData);
+        setShowPackOpening(true);
+        console.log(`Successfully purchased ${packType} pack with XP!`);
+      } else {
+        console.error("Failed to purchase pack with XP:", result.error);
+        alert(result.error || "Failed to purchase pack with XP");
+      }
+    } catch (error) {
+      console.error("Pack purchase with XP failed:", error);
+      alert("Failed to purchase pack with XP");
+    } finally {
+      setLoadingPacks(prev => ({ ...prev, [packKey]: false }));
+    }
+  };
+
+  const handleClosePaymentModal = () => {
+    setShowPaymentSelection(false);
+    setSelectedPackForPurchase(null);
   };
 
   const handleCloseModal = () => {
@@ -373,6 +463,25 @@ export default function PlayersPage() {
           packId={currentPack.packId}
           packType={currentPack.packType}
           totalValue={currentPack.totalValue}
+          purchasedWithXP={currentPack.purchasedWithXP}
+          xpDeducted={currentPack.xpDeducted}
+          remainingXP={currentPack.remainingXP}
+        />
+      )}
+
+      {/* Payment Selection Modal */}
+      {selectedPackForPurchase && (
+        <PaymentSelectionModal
+          isOpen={showPaymentSelection}
+          onClose={handleClosePaymentModal}
+          onSelectBoson={handlePurchaseWithBoson}
+          onSelectXP={handlePurchaseWithXP}
+          packType={selectedPackForPurchase.type}
+          bosonCost={selectedPackForPurchase.bosonCost}
+          xpCost={selectedPackForPurchase.xpCost}
+          userXP={getTotalXP()}
+          bosonBalance={balances.boson ?? 0}
+          loading={loadingPacks[selectedPackForPurchase.type.toLowerCase()]}
         />
       )}
     </div>

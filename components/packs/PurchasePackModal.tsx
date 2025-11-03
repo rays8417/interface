@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { PLAYER_MAPPING } from "@/lib/constants";
 import { usePackOpening } from "@/hooks/usePackOpening";
 import { useBalanceRefresh } from "@/hooks/useBalanceRefresh";
+import { useUserData } from "@/contexts/UserDataContext";
 
 interface PackPlayer {
   amount: number;
@@ -20,6 +21,9 @@ interface PackOpeningModalProps {
   packId: string;
   packType: string;
   totalValue: number;
+  purchasedWithXP?: boolean;
+  xpDeducted?: number;
+  remainingXP?: number;
 }
 
 export default function PurchasePackModal({ 
@@ -27,7 +31,10 @@ export default function PurchasePackModal({
   onClose, 
   packId,
   packType,
-  totalValue
+  totalValue,
+  purchasedWithXP = false,
+  xpDeducted = 0,
+  remainingXP = 0,
 }: PackOpeningModalProps) {
   const [mounted, setMounted] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -37,6 +44,7 @@ export default function PurchasePackModal({
   
   const { loading, error, openPack } = usePackOpening();
   const { triggerRefresh } = useBalanceRefresh();
+  const { refreshUserData } = useUserData();
 
   useEffect(() => {
     setMounted(true);
@@ -62,6 +70,11 @@ export default function PurchasePackModal({
       
       // Refresh token balances after successful pack opening
       triggerRefresh();
+      
+      // Refresh user data to update XP if pack was purchased with XP
+      if (purchasedWithXP) {
+        await refreshUserData();
+      }
       
       // Trigger flip animation after a short delay
       setTimeout(() => {
@@ -165,6 +178,18 @@ export default function PurchasePackModal({
                     <span className="text-sm text-foreground-muted">Total Value:</span>
                     <span className="text-sm font-medium text-foreground">{Number(totalValue).toFixed(2)} BOSON</span>
                   </div>
+                  {purchasedWithXP && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-foreground-muted">XP Deducted:</span>
+                        <span className="text-sm font-medium text-purple-500">-{xpDeducted} XP</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-foreground-muted">Remaining XP:</span>
+                        <span className="text-sm font-medium text-foreground">{remainingXP.toLocaleString()} XP</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-foreground-muted">Pack ID:</span>
                     <span className="text-sm font-mono text-foreground-muted">{packId.slice(0, 8)}...</span>
