@@ -44,7 +44,9 @@ export default function PurchasePackModal({
   const [showSuccess, setShowSuccess] = useState(true); // Start with success state
   const [hasOpenedPack, setHasOpenedPack] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showSharePreview, setShowSharePreview] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
+  const previewCardRef = useRef<HTMLDivElement>(null);
   
   const { loading, error, openPack } = usePackOpening();
   const { triggerRefresh } = useBalanceRefresh();
@@ -62,6 +64,7 @@ export default function PurchasePackModal({
       setIsFlipped(false);
       setShowSuccess(true);
       setPackPlayers([]);
+      setShowSharePreview(false);
     }
   }, [isOpen]);
 
@@ -84,6 +87,10 @@ export default function PurchasePackModal({
       setTimeout(() => {
         setIsFlipped(true);
         setShowSuccess(false);
+        // Show share preview modal after flip animation completes
+        setTimeout(() => {
+          setShowSharePreview(true);
+        }, 800);
       }, 1000);
     }
   };
@@ -138,8 +145,9 @@ export default function PurchasePackModal({
     }
   };
 
-  const generateCardCanvas = async () => {
-    if (!shareCardRef.current) {
+  const generateCardCanvas = async (cardElement?: HTMLDivElement) => {
+    const cardRef = cardElement || shareCardRef.current;
+    if (!cardRef) {
       throw new Error("Share card is not ready yet");
     }
 
@@ -162,7 +170,7 @@ export default function PurchasePackModal({
 
     await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
 
-    const source = shareCardRef.current;
+    const source = cardRef;
     const { width, height } = source.getBoundingClientRect();
 
     const clone = source.cloneNode(true) as HTMLDivElement;
@@ -222,11 +230,12 @@ export default function PurchasePackModal({
   };
 
   const downloadCard = async () => {
-    if (!shareCardRef.current) return;
+    const cardRef = showSharePreview ? previewCardRef.current : shareCardRef.current;
+    if (!cardRef) return;
     
     setIsDownloading(true);
     try {
-      const canvas = await generateCardCanvas();
+      const canvas = await generateCardCanvas(cardRef);
       
       const link = document.createElement("a");
       link.download = `tenjaku-pack-${packType.toLowerCase()}-${Date.now()}.png`;
@@ -243,12 +252,13 @@ export default function PurchasePackModal({
   };
 
   const shareOnTwitter = async () => {
-    if (!shareCardRef.current) return;
+    const cardRef = showSharePreview ? previewCardRef.current : shareCardRef.current;
+    if (!cardRef) return;
     
     try {
       toast.loading("Generating card image...", { id: "twitter-share" });
       
-      const canvas = await generateCardCanvas();
+      const canvas = await generateCardCanvas(cardRef);
       
       canvas.toBlob(async (blob) => {
         if (!blob) {
@@ -335,7 +345,7 @@ export default function PurchasePackModal({
 
   const modalContent = isOpen && mounted ? createPortal(
     <div 
-      className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[50] flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div className="perspective-1000 w-full max-w-2xl my-8">
@@ -469,6 +479,16 @@ export default function PurchasePackModal({
             {packPlayers.length > 0 && (
               <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
                 <button
+                  onClick={() => setShowSharePreview(true)}
+                  className="p-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition-all shadow-lg"
+                  aria-label="Preview Card"
+                >
+                  <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button
                   onClick={downloadCard}
                   disabled={isDownloading}
                   className="p-2 bg-surface-elevated hover:bg-muted border border-border rounded-lg transition-all hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -524,7 +544,7 @@ export default function PurchasePackModal({
               {packPlayers.length > 0 && (
                 <div className="space-y-4 flex-grow">
                   <h3 className="text-lg font-semibold text-foreground text-center pb-2">Your Players</h3>
-                  <div className="grid gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="grid gap-3">
                     {packPlayers.filter(player => player && player.player).map((player, index) => {
                       const playerInfo = getPlayerInfo(player.player);
                       return (
@@ -687,9 +707,155 @@ export default function PurchasePackModal({
           </div>
         </div>
       </div>
+
     </div>,
     document.body
   ) : null;
 
-  return <>{modalContent}</>;
+  const previewModalContent = showSharePreview && packPlayers.length > 0 && mounted ? createPortal(
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+      style={{ zIndex: 9999 }}
+      onClick={() => setShowSharePreview(false)}
+    >
+          <div 
+            className="relative max-w-2xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowSharePreview(false)}
+              className="absolute -top-12 right-0 text-white/80 hover:text-white transition-colors z-10"
+              aria-label="Close"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                className="h-6 w-6"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Preview Card */}
+            <div
+              ref={previewCardRef}
+              className="relative w-full bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] rounded-2xl overflow-hidden border border-border/50 shadow-2xl"
+              style={{ aspectRatio: '640/400' }}
+            >
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10 z-0">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(28,156,240,0.15),transparent_50%)]" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+              </div>
+
+              {/* Content Container */}
+              <div className="relative h-full px-8 py-8 grid grid-rows-[auto,1fr,auto]">
+                {/* Top Section - Brand */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">TENJAKU</h3>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <p className="text-xs text-gray-400 uppercase tracking-wider">{packPlayers.length} Players added to my team</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1.5 bg-gradient-to-br ${getPackColor(packType).from} ${getPackColor(packType).to} border ${getPackColor(packType).border} rounded-lg shadow-lg`}>
+                    <span className={`text-xs font-semibold ${getPackColor(packType).text} uppercase tracking-wider`}>{packType} Pack</span>
+                  </div>
+                </div>
+
+                {/* Center Section - Players */}
+                <div className="flex flex-col justify-center items-center gap-6">
+                  {/* Player Circles */}
+                  <div className={`grid gap-4 ${
+                    packPlayers.length <= 4 ? 'grid-cols-4' : 
+                    packPlayers.length === 5 ? 'grid-cols-5' : 
+                    'grid-cols-6'
+                  } max-w-full`}>
+                    {packPlayers.slice(0, 6).map((player, idx) => {
+                      const playerInfo = getPlayerInfo(player.player);
+                      const getPositionIcon = (position: string) => {
+                        switch (position) {
+                          case 'BAT':
+                            return (
+                              <img src="/bat.png" alt="Batsman" className="w-10 h-10 object-contain brightness-0 invert" />
+                            );
+                          case 'BWL':
+                            return (
+                              <img src="/ball.png" alt="Bowler" className="w-10 h-10 object-contain brightness-0 invert" />
+                            );
+                          case 'AR':
+                            return (
+                              <img src="/AR.png" alt="All Rounder" className="w-10 h-10 object-contain brightness-0 invert" />
+                            );
+                          case 'WK':
+                            return (
+                              <img src="/stump.png" alt="Wicket Keeper" className="w-10 h-10 object-contain brightness-0 invert" />
+                            );
+                          default:
+                            return (
+                              <span className="text-primary font-bold text-lg">{playerInfo.avatar}</span>
+                            );
+                        }
+                      };
+                      return (
+                        <div key={idx} className="flex flex-col items-center gap-2">
+                          <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center shadow-lg flex-shrink-0">
+                            {getPositionIcon(playerInfo.position)}
+                          </div>
+                          <p className="text-xs font-semibold text-white text-center px-1 leading-tight">{playerInfo.displayName}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Bottom Section - Footer */}
+                <div className="flex items-end justify-between pt-4">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Pack Opened</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-primary">Tenjaku.fun</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Corner Accent */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-3xl" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-accent/10 to-transparent rounded-tr-3xl" />
+            </div>
+
+            {/* Share and Download Buttons - Bottom Center */}
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <button
+                onClick={downloadCard}
+                disabled={isDownloading}
+                className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl transition-all hover:border-white/50 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm shadow-lg"
+              >
+                <Download className="h-5 w-5 text-white" />
+                <span className="text-white font-semibold">Download Card</span>
+              </button>
+              <button
+                onClick={shareOnTwitter}
+                className="flex items-center gap-2 px-6 py-3 bg-black hover:bg-gray-800 border border-white/20 rounded-xl transition-all shadow-xl hover:shadow-2xl"
+              >
+                <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                <span className="text-white font-semibold">Share on X</span>
+              </button>
+            </div>
+          </div>
+    </div>,
+    document.body
+  ) : null;
+
+  return <>{modalContent}{previewModalContent}</>;
 }
