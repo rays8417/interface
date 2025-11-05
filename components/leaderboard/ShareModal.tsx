@@ -247,13 +247,15 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
           {/* Shareable Card */}
           <div
             ref={cardRef}
-            className="relative w-[640px] h-[400px] bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] rounded-2xl overflow-hidden border border-border/50 shadow-2xl mx-auto"
+            className="relative w-[640px] h-[400px] bg-gradient-to-br from-[#F9E58B] via-[#F7C452] to-[#F18E2A] rounded-2xl overflow-hidden border border-yellow-400/80 shadow-[0_20px_60px_rgba(241,142,42,0.35)] mx-auto"
           >
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10 z-0">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(28,156,240,0.15),transparent_50%)]" />
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+            <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(255,255,255,0.6),transparent_60%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_75%,rgba(255,255,255,0.35),transparent_60%)]" />
+              <div className="absolute inset-0 opacity-40 mix-blend-screen bg-[linear-gradient(135deg,rgba(255,255,255,0.35),rgba(255,255,255,0)_30%,rgba(255,255,255,0)_70%,rgba(255,255,255,0.25))]" />
+              <div className="absolute -left-24 top-16 w-72 h-72 bg-gradient-to-br from-[#FFF8C9] to-transparent rounded-full blur-3xl opacity-80" />
+              <div className="absolute -right-24 bottom-10 w-60 h-60 bg-gradient-to-br from-[#FFE8A3] to-transparent rounded-full blur-3xl opacity-70" />
             </div>
 
             {/* Content Container */}
@@ -261,11 +263,11 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
               {/* Top Section - Brand */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">TENJAKU</h3>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider">Leaderboard</p>
+                  <h3 className="text-2xl font-bold text-[#2D1A00] mb-1 tracking-tight drop-shadow-[0_2px_8px_rgba(255,255,255,0.5)]">TENJAKU</h3>
+                  
                 </div>
-                <div className="px-3 py-1.5 bg-gradient-to-br from-yellow-500/20 via-yellow-400/25 to-yellow-600/20 border border-yellow-500/40 rounded-lg shadow-lg shadow-yellow-500/20">
-                  <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Top Player</span>
+                <div className="px-3 py-1.5 bg-gradient-to-br from-[#FFF4C5]/60 via-[#FFD75A]/70 to-[#F6AE2D]/60 border border-yellow-500/50 rounded-lg shadow-lg shadow-yellow-500/40 backdrop-blur-sm">
+                  <span className="text-xs font-semibold text-[#4D2E00] uppercase tracking-wider">Top Player</span>
                 </div>
               </div>
 
@@ -274,27 +276,27 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
                 {/* Rank Display */}
                 <div className="flex items-center gap-5">
                   <div className="relative flex-shrink-0">
-                    <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 via-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/40 rotate-3">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl" />
-                      <span className="text-3xl font-black text-gray-900 relative z-10">#{rank}</span>
+                    <div className="w-24 h-24 bg-gradient-to-br from-[#FFF6D6] via-[#FFD968] to-[#F4A53D] rounded-[1.75rem] flex items-center justify-center shadow-[0_15px_35px_rgba(244,165,61,0.45)] rotate-3">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/45 via-transparent to-transparent rounded-[1.75rem]" />
+                      <span className="text-3xl font-black text-[#5C3B00] relative z-10 drop-shadow-[0_4px_6px_rgba(255,255,255,0.4)]">#{rank}</span>
                     </div>
                     {/* Glow effect */}
-                    <div className="absolute inset-0 bg-yellow-500/40 blur-xl rounded-full" />
+                    <div className="absolute inset-0 bg-[#FFD45E]/60 blur-2xl rounded-full" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">Your Rank</p>
-                    <p className="text-2xl font-bold text-white">Position #{rank}</p>
+                    <p className="text-sm text-[#5C3B00] uppercase tracking-wider mb-1 font-semibold">Your Rank</p>
+                    <p className="text-3xl font-extrabold text-[#1A0E00] drop-shadow-[0_3px_10px_rgba(255,255,255,0.35)]">Position #{rank}</p>
                   </div>
                 </div>
 
                 {/* Rewards Display */}
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1.5">Total Rewards Earned</p>
+                  <p className="text-xs text-[#5C3B00] uppercase tracking-wider mb-1.5 font-semibold">Total Rewards Earned</p>
                   <div className="flex items-center gap-3 mt-6">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0">
-                      <span className="text-white font-bold text-sm">B</span>
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#FFF7D9] to-[#F2B13D] rounded-full flex items-center justify-center shadow-[0_10px_25px_rgba(242,177,61,0.45)] flex-shrink-0">
+                      <span className="text-[#2D1A00] font-extrabold text-sm">B</span>
                     </div>
-                    <span className="text-2xl font-bold text-white">{formatRewards(rewards)}</span>
+                    <span className="text-3xl font-extrabold text-[#1A0E00] tracking-tight drop-shadow-[0_3px_8px_rgba(255,255,255,0.35)]">{formatRewards(rewards)}</span>
                   </div>
                 </div>
               </div>
@@ -302,18 +304,19 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
               {/* Bottom Section - Wallet & Footer */}
               <div className="flex items-end justify-between pt-4">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Wallet</p>
-                  <p className="text-sm font-mono text-gray-300">{formatWalletAddress(walletAddress)}</p>
+                  <p className="text-xs text-[#5C3B00] uppercase tracking-wider mb-1 font-semibold">Wallet</p>
+                  <p className="text-sm font-mono text-[#3A2500] font-semibold">{formatWalletAddress(walletAddress)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-primary">Tenjaku.fun</p>
+                  <p className="text-xl font-bold text-[#1A0E00] drop-shadow-[0_2px_6px_rgba(255,255,255,0.4)]">Tenjaku.fun</p>
                 </div>
               </div>
             </div>
 
             {/* Corner Accent */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-3xl" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-accent/10 to-transparent rounded-tr-3xl" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[radial-gradient(circle,rgba(255,255,255,0.5),transparent_70%)] opacity-60" />
+            <div className="absolute bottom-0 left-0 w-44 h-44 bg-[radial-gradient(circle,rgba(255,220,120,0.55),transparent_70%)] opacity-70" />
+            <div className="absolute inset-x-12 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-80" />
           </div>
 
           {/* Action Buttons */}
