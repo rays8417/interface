@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Download, Share2, Twitter } from "lucide-react";
+import { X, Download, Twitter } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface ShareModalProps {
@@ -28,19 +28,95 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
     }).format(amount);
   };
 
+  const generateCardCanvas = async () => {
+    if (!cardRef.current) {
+      throw new Error("Share card is not ready yet");
+    }
+
+    const disableAnimations = (element: HTMLElement) => {
+      element.style.animation = "none";
+      element.style.transition = "none";
+      element.querySelectorAll<HTMLElement>("*").forEach((child) => {
+        child.style.animation = "none";
+        child.style.transition = "none";
+      });
+    };
+
+    try {
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+    } catch (err) {
+      console.warn("Font loading check failed", err);
+    }
+
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+
+    const source = cardRef.current;
+    const { width, height } = source.getBoundingClientRect();
+
+    const clone = source.cloneNode(true) as HTMLDivElement;
+    clone.style.position = "fixed";
+    clone.style.left = "0";
+    clone.style.top = "0";
+    clone.style.margin = "0";
+    clone.style.transform = "none";
+    clone.style.opacity = "1";
+    clone.style.pointerEvents = "none";
+    clone.style.width = `${width}px`;
+    clone.style.height = `${height}px`;
+  clone.style.contain = "none";
+  clone.style.boxSizing = "border-box";
+    clone.style.zIndex = "-1";
+
+    disableAnimations(clone);
+
+    document.body.appendChild(clone);
+
+    const pixelRatio = Math.min(2, window.devicePixelRatio || 2);
+
+    let canvas: HTMLCanvasElement;
+
+    try {
+      const { toCanvas } = await import("html-to-image");
+      canvas = await toCanvas(clone, {
+        backgroundColor: "transparent",
+        cacheBust: true,
+        pixelRatio,
+        width,
+        height,
+        style: {
+          margin: "0",
+          transform: "none",
+        },
+      });
+    } catch (err) {
+      console.warn("html-to-image failed, falling back to html2canvas", err);
+      const html2canvas = (await import("html2canvas")).default;
+      canvas = await html2canvas(clone, {
+        backgroundColor: null,
+        scale: pixelRatio,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width,
+        height,
+        scrollX: 0,
+        scrollY: 0,
+      });
+    } finally {
+      document.body.removeChild(clone);
+    }
+
+    return canvas;
+  };
+
   const downloadCard = async () => {
     if (!cardRef.current) return;
     
     setIsDownloading(true);
     try {
-      // Dynamic import for html2canvas
-      const html2canvas = (await import("html2canvas")).default;
-      
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        logging: false,
-      });
+      const canvas = await generateCardCanvas();
       
       const link = document.createElement("a");
       link.download = `tenjaku-leaderboard-rank-${rank}.png`;
@@ -60,13 +136,7 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
       toast.loading("Generating card image...", { id: "twitter-share" });
       
       // Generate image from card
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        logging: false,
-        useCORS: true,
-      });
+      const canvas = await generateCardCanvas();
       
       // Convert canvas to blob
       canvas.toBlob(async (blob) => {
@@ -160,7 +230,7 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg mx-4 bg-surface border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+  <div className="relative w-full max-w-3xl mx-4 bg-surface border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-xl font-bold text-foreground">Share Your Achievement</h2>
@@ -177,22 +247,22 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
           {/* Shareable Card */}
           <div
             ref={cardRef}
-            className="relative w-full aspect-[1.6/1] bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] rounded-2xl overflow-hidden border border-border/50 shadow-2xl"
+            className="relative w-[640px] h-[400px] bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] rounded-2xl overflow-hidden border border-border/50 shadow-2xl mx-auto"
           >
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0 opacity-10 z-0">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(28,156,240,0.15),transparent_50%)]" />
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
             </div>
 
             {/* Content Container */}
-            <div className="relative h-full flex flex-col p-8">
+            <div className="relative h-full px-8 py-8 grid grid-rows-[auto,1fr,auto]">
               {/* Top Section - Brand */}
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-1 tracking-tight">TENJAKU</h3>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider">Leaderboard Achievement</p>
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">Leaderboard</p>
                 </div>
                 <div className="px-3 py-1.5 bg-gradient-to-br from-yellow-500/20 via-yellow-400/25 to-yellow-600/20 border border-yellow-500/40 rounded-lg shadow-lg shadow-yellow-500/20">
                   <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Top Player</span>
@@ -200,7 +270,7 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
               </div>
 
               {/* Center Section - Main Stats */}
-              <div className="flex-1 flex flex-col justify-center space-y-4">
+              <div className="flex flex-col justify-center gap-12">
                 {/* Rank Display */}
                 <div className="flex items-center gap-5">
                   <div className="relative flex-shrink-0">
@@ -218,9 +288,9 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
                 </div>
 
                 {/* Rewards Display */}
-                <div className="bg-gradient-to-r from-surface-elevated/50 to-surface-elevated/30 border border-border/30 rounded-xl p-3 backdrop-blur-sm">
+                <div>
                   <p className="text-xs text-gray-400 uppercase tracking-wider mb-1.5">Total Rewards Earned</p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mt-6">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0">
                       <span className="text-white font-bold text-sm">B</span>
                     </div>
@@ -229,26 +299,14 @@ export default function ShareModal({ isOpen, onClose, rank, rewards, walletAddre
                 </div>
               </div>
 
-              {/* Bottom Section - Wallet & Dashed Line */}
-              <div className="mt-auto pt-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
-                  <div className="px-4 flex gap-2">
-                    <div className="w-2 h-2 bg-primary/40 rounded-full" />
-                    <div className="w-2 h-2 bg-primary/60 rounded-full" />
-                    <div className="w-2 h-2 bg-primary rounded-full" />
-                  </div>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+              {/* Bottom Section - Wallet & Footer */}
+              <div className="flex items-end justify-between pt-4">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Wallet</p>
+                  <p className="text-sm font-mono text-gray-300">{formatWalletAddress(walletAddress)}</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Wallet</p>
-                    <p className="text-sm font-mono text-gray-300">{formatWalletAddress(walletAddress)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Platform</p>
-                    <p className="text-sm font-semibold text-primary">Tenjaku.fi</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-primary">Tenjaku.fun</p>
                 </div>
               </div>
             </div>
