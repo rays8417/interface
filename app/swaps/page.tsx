@@ -2,9 +2,12 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallets } from "@privy-io/react-auth/solana";
 import { useWallet } from "@/hooks/useWallet";
 import { useTrackUser } from "@/hooks/useTrackUser";
 import WelcomeModal from "@/components/WelcomeModal";
+import TestnetInfoModal from "@/components/TestnetInfoModal";
 import SwapCard from "@/components/swaps/SwapCard";
 import LivePricesCard from "@/components/swaps/LivePricesCard";
 import { useLiquidityPairs } from "@/hooks/useLiquidityPairs";
@@ -17,10 +20,13 @@ import { BOSON_TOKEN } from "@/lib/constants";
 function SwapsPageContent() {
   const { account } = useWallet();
   const searchParams = useSearchParams();
+  const { authenticated } = usePrivy();
+  const { ready: walletsReady, wallets } = useWallets();
   
   // Track user when address changes
   const { isNewUser } = useTrackUser(account?.address);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showTestnetModal, setShowTestnetModal] = useState(false);
   
   // Show welcome modal if user is new
   useEffect(() => {
@@ -28,6 +34,54 @@ function SwapsPageContent() {
       setShowWelcomeModal(true);
     }
   }, [isNewUser]);
+
+  // Show testnet modal when user is authenticated and has wallet (only once per session)
+  // Show it after welcome modal closes, or immediately if no welcome modal
+  useEffect(() => {
+    if (!walletsReady) return;
+    
+    const isAuthenticated = authenticated && wallets.length > 0;
+    const hasSeenModal = typeof window !== 'undefined' ? sessionStorage.getItem("testnet-info-seen") : null;
+    
+    console.log('[SWAPS] Testnet modal check:', {
+      walletsReady,
+      authenticated,
+      walletsCount: wallets.length,
+      isAuthenticated,
+      hasSeenModal,
+      showTestnetModal,
+      showWelcomeModal
+    });
+    
+    // Don't show if already showing or if user has seen it
+    if (showTestnetModal || hasSeenModal) return;
+    
+    // If welcome modal is showing, wait for it to close
+    if (showWelcomeModal) return;
+    
+    if (isAuthenticated) {
+      console.log('[SWAPS] Setting timer to show testnet modal');
+      // Small delay to ensure smooth transition after redirect
+      const timer = setTimeout(() => {
+        console.log('[SWAPS] Showing testnet modal now');
+        setShowTestnetModal(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [walletsReady, authenticated, wallets.length, showTestnetModal, showWelcomeModal]);
+
+  // Show testnet modal after welcome modal closes
+  useEffect(() => {
+    if (!showWelcomeModal && walletsReady && authenticated && wallets.length > 0) {
+      const hasSeenModal = typeof window !== 'undefined' ? sessionStorage.getItem("testnet-info-seen") : null;
+      if (!hasSeenModal && !showTestnetModal) {
+        const timer = setTimeout(() => {
+          setShowTestnetModal(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [showWelcomeModal, walletsReady, authenticated, wallets.length, showTestnetModal]);
   
   const [payAmount, setPayAmount] = useState("");
   const [isSwapped, setIsSwapped] = useState(false);
@@ -250,6 +304,12 @@ function SwapsPageContent() {
         onClose={() => {
           console.log("[SWAPS] Closing welcome modal");
           setShowWelcomeModal(false);
+        }}
+      />
+      <TestnetInfoModal
+        isOpen={showTestnetModal}
+        onClose={() => {
+          setShowTestnetModal(false);
         }}
       />
       <div className="min-h-screen bg-background">
