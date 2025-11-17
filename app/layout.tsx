@@ -9,7 +9,8 @@ import { UserDataProvider } from "../contexts/UserDataContext";
 import { Toaster } from "react-hot-toast";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+import MobilePromptModal from "@/components/MobilePromptModal";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -112,6 +113,7 @@ export default function RootLayout({
               },
             }}
           />
+          <MobilePromptModal />
         </PrivyProviderWrapper>
       </body>
     </html>
