@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   title: "Tenjaku",
   description: "Cricket fantasy",
   icons: {
-    icon: '/tenjaku-circular-blackwhite.png',
+    icon: '/ten9.png',
   },
 };
 
